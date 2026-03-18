@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horizon Consultoria · Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #1A3C6E;
+      --blue-mid: #2D5DA0;
+      --blue-light: #E8EFF9;
+      --blue-pale: #F4F7FC;
+      --gold: #C9A84C;
+      --gold-light: #FDF6E3;
+      --dark: #0D1B2A;
+      --mid: #3A4F6A;
+      --muted: #7A8EA8;
+      --border: rgba(26,60,110,0.12);
+      --white: #FFFFFF;
+      --success-bg: #EDF7ED; --success: #2E7D32;
+      --warn-bg: #FFF8E6; --warn: #B45309;
+      --danger-bg: #FEF2F2; --danger: #C0392B;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--blue-pale); color: var(--dark); min-height: 100vh; }
+
+    /* LOGIN */
+    #loginScreen { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; }
+    .login-card { background:var(--white); border:1px solid var(--border); border-radius:18px; padding:40px 36px; width:100%; max-width:360px; text-align:center; }
+    .hz-logo { font-family:'Syne',sans-serif; font-size:26px; font-weight:700; color:var(--blue); letter-spacing:-0.02em; margin-bottom:2px; }
+    .hz-logo span { color:var(--gold); }
+    .hz-sub { font-size:12px; color:var(--muted); margin-bottom:28px; }
+    .field-label { display:block; font-size:11px; font-weight:500; color:var(--muted); text-align:left; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.06em; }
+    .field-input { width:100%; padding:11px 14px; border:1px solid var(--border); border-radius:9px; font-family:'DM Sans',sans-serif; font-size:14px; color:var(--dark); background:var(--blue-pale); outline:none; transition:border-color .2s; }
+    .field-input:focus { border-color:var(--blue-mid); background:white; }
+    .btn-p { width:100%; padding:12px; background:var(--blue); color:white; border:none; border-radius:9px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; margin-top:14px; transition:background .2s; }
+    .btn-p:hover { background:var(--blue-mid); }
+    .err { font-size:12px; color:var(--danger); background:var(--danger-bg); border-radius:7px; padding:9px 12px; margin-top:10px; display:none; }
+
+    /* APP */
+    #appScreen { display:none; }
+    .topbar { background:var(--blue); padding:0 24px; display:flex; align-items:center; justify-content:space-between; height:58px; }
+    .topbar-logo { font-family:'Syne',sans-serif; font-size:17px; font-weight:700; color:white; letter-spacing:-0.01em; }
+    .topbar-logo span { color:var(--gold); }
+    .topbar-tag { font-size:11px; color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.1); padding:3px 10px; border-radius:20px; }
+    .tabs-bar { background:var(--white); border-bottom:1px solid var(--border); display:flex; padding:0 24px; }
+    .tab-btn { padding:14px 18px; font-size:13px; color:var(--muted); background:transparent; border:none; border-bottom:2px solid transparent; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .2s; }
+    .tab-btn.active { color:var(--blue); border-bottom-color:var(--blue); font-weight:500; }
+    .content { padding:20px 24px; max-width:900px; margin:0 auto; }
+    .sec { display:none; } .sec.active { display:block; }
+
+    /* MÉTRICAS */
+    .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:18px; }
+    .mc { background:var(--white); border:1px solid var(--border); border-radius:10px; padding:14px; }
+    .mc-l { font-size:11px; color:var(--muted); margin-bottom:4px; }
+    .mc-v { font-size:22px; font-weight:500; color:var(--dark); line-height:1; }
+    .mc-s { font-size:11px; color:var(--muted); margin-top:3px; }
+
+    /* CARD */
+    .card { background:var(--white); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:14px; }
+    .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+    .card-title { font-family:'Syne',sans-serif; font-size:15px; font-weight:600; color:var(--dark); }
+
+    /* BOTÕES */
+    .btn-blue { padding:8px 16px; background:var(--blue); color:white; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; transition:background .2s; }
+    .btn-blue:hover { background:var(--blue-mid); }
+    .btn-ghost { padding:7px 14px; background:transparent; border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:12px; color:var(--dark); cursor:pointer; }
+    .btn-ghost:hover { background:var(--blue-pale); }
+    .btn-danger { padding:6px 12px; background:var(--danger-bg); color:var(--danger); border:1px solid #FECACA; border-radius:7px; font-size:11px; cursor:pointer; font-family:'DM Sans',sans-serif; }
+
+    /* BADGES */
+    .badge { display:inline-block; font-size:11px; font-weight:500; padding:2px 9px; border-radius:20px; }
+    .bg { background:#EAF3DE; color:#3B6D11; }
+    .br { background:var(--danger-bg); color:var(--danger); }
+    .bb { background:var(--blue-light); color:var(--blue); }
+    .ba { background:var(--warn-bg); color:var(--warn); }
+
+    /* TOGGLE */
+    .tgl { position:relative; width:38px; height:22px; flex-shrink:0; }
+    .tgl input { opacity:0; width:100%; height:100%; position:absolute; cursor:pointer; margin:0; z-index:1; }
+    .tgl-track { position:absolute; inset:0; background:#D1D5DB; border-radius:11px; transition:background .2s; pointer-events:none; }
+    .tgl input:checked~.tgl-track { background:#1A3C6E; }
+    .tgl-thumb { position:absolute; top:3px; left:3px; width:16px; height:16px; background:white; border-radius:50%; transition:transform .2s; pointer-events:none; }
+    .tgl input:checked~.tgl-track~.tgl-thumb { transform:translateX(16px); }
+
+    /* TABLE */
+    table { width:100%; border-collapse:collapse; font-size:12px; }
+    th { text-align:left; color:var(--muted); font-weight:500; padding:0 8px 9px; border-bottom:1px solid var(--border); font-size:11px; text-transform:uppercase; letter-spacing:0.04em; }
+    td { padding:10px 8px; border-bottom:1px solid #F4F7FC; vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:var(--blue-pale); }
+
+    /* FORM */
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+    .form-label { font-size:11px; color:var(--muted); margin-bottom:4px; display:block; text-transform:uppercase; letter-spacing:0.05em; }
+    .form-input { width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:13px; color:var(--dark); background:var(--blue-pale); outline:none; }
+    .form-input:focus { border-color:var(--blue-mid); background:white; }
+    select.form-input { cursor:pointer; }
+
+    /* CLIENTES */
+    .cliente-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+    .cliente-row:last-child { border-bottom:none; }
+    .cliente-avatar { width:38px; height:38px; border-radius:9px; background:var(--blue-light); display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:var(--blue); flex-shrink:0; }
+    .cliente-nome { font-size:13px; font-weight:500; color:var(--dark); }
+    .cliente-token { font-size:11px; color:var(--muted); font-family:monospace; }
+
+    /* HISTÓRICO */
+    .log-row { display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px solid #F4F7FC; }
+    .log-row:last-child { border-bottom:none; }
+    .log-dot { width:8px; height:8px; border-radius:50%; background:var(--success); flex-shrink:0; margin-top:4px; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+    @media(max-width:600px) {
+      .metrics { grid-template-columns:1fr 1fr; }
+      .two-col { grid-template-columns:1fr; }
+      .form-grid { grid-template-columns:1fr; }
+      .content { padding:16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN ADMIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="hz-logo">HORIZON<span>.</span></div>
+    <div class="hz-sub">Painel administrativo · Acesso restrito</div>
+    <label class="field-label">Chave de administrador</label>
+    <input type="password" class="field-input" id="adminKeyInput" placeholder="••••••••••••"
+      onkeydown="if(event.key==='Enter') fazerLoginAdmin()">
+    <button class="btn-p" onclick="fazerLoginAdmin()">Entrar</button>
+    <div class="err" id="adminErr"></div>
+  </div>
+</div>
+
+<!-- APP ADMIN -->
+<div id="appScreen">
+  <div class="topbar">
+    <div class="topbar-logo">HORIZON<span>.</span> Consultoria</div>
+    <span class="topbar-tag">Admin</span>
+  </div>
+  <div class="tabs-bar">
+    <button class="tab-btn active" onclick="sw('clientes',this)">Clientes</button>
+    <button class="tab-btn" onclick="sw('baixas',this)">Baixas</button>
+    <button class="tab-btn" onclick="sw('novo',this)">+ Novo cliente</button>
+  </div>
+
+  <div class="content">
+
+    <!-- CLIENTES -->
+    <div class="sec active" id="sec-clientes">
+      <div class="metrics">
+        <div class="mc"><div class="mc-l">Total clientes</div><div class="mc-v" id="mTotal">0</div></div>
+        <div class="mc"><div class="mc-l">Ativos</div><div class="mc-v" style="color:#2E7D32" id="mAtivos">0</div></div>
+        <div class="mc"><div class="mc-l">Bloqueados</div><div class="mc-v" style="color:var(--danger)" id="mBloqueados">0</div></div>
+        <div class="mc"><div class="mc-l">Dispositivos em uso</div><div class="mc-v" id="mDisp">0</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Clientes cadastrados</span>
+          <button class="btn-blue" onclick="sw('novo', document.querySelectorAll('.tab-btn')[2])">+ Novo cliente</button>
+        </div>
+        <div id="listaClientes"><div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Carregando...</div></div>
+      </div>
+    </div>
+
+    <!-- BAIXAS -->
+    <div class="sec" id="sec-baixas">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Últimas baixas registradas</span>
+          <button class="btn-ghost" onclick="carregarBaixas()">↻ Atualizar</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th>Produto</th><th>Loja</th><th>Qtd</th><th>Estoque após</th><th>Horário</th>
+            </tr></thead>
+            <tbody id="tBaixas"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOVO CLIENTE -->
+    <div class="sec" id="sec-novo">
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Cadastrar novo cliente</span></div>
+          <div class="form-grid">
+            <div>
+              <label class="form-label">Nome da loja</label>
+              <input type="text" class="form-input" id="nNome" placeholder="Ex: Sapataria Silva">
+            </div>
+            <div>
+              <label class="form-label">Código de acesso</label>
+              <input type="text" class="form-input" id="nToken" placeholder="Ex: SILVA-2025-XX1">
+            </div>
+          </div>
+          <div class="form-grid">
+            <div>
+              <label class="form-label">Dispositivos permitidos</label>
+              <select class="form-input" id="nDisp">
+                <option value="1">1 dispositivo</option>
+                <option value="2" selected>2 dispositivos</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Gerar código automático</label>
+              <button class="btn-ghost" style="width:100%;padding:9px" onclick="gerarToken()">Gerar código</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button class="btn-blue" onclick="salvarCliente()">Salvar cliente</button>
+            <button class="btn-ghost" onclick="sw('clientes',document.querySelectorAll('.tab-btn')[0])">Cancelar</button>
+          </div>
+          <div class="err" id="novoErr" style="margin-top:10px"></div>
+          <div id="novoOk" style="display:none;margin-top:10px;background:var(--success-bg);border-radius:8px;padding:10px;font-size:13px;color:var(--success)"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Como funciona o acesso</span></div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.8">
+            <p style="margin-bottom:8px">1. Gere ou defina um código para o cliente.</p>
+            <p style="margin-bottom:8px">2. Envie o código e o link do sistema para ele.</p>
+            <p style="margin-bottom:8px">3. O cliente usa em até <strong style="color:var(--dark)">2 dispositivos</strong> simultaneamente.</p>
+            <p style="margin-bottom:8px">4. Para bloquear por inadimplência, basta desativar o toggle na lista de clientes.</p>
+            <p>5. O bloqueio é imediato — a próxima requisição do cliente retorna acesso negado.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const API = 'https://SEU-PROJETO.onrender.com'; // ← troque pela URL do Render
+  let ADMIN_KEY = '';
+  let clientes = [];
+
+  async function fazerLoginAdmin() {
+    ADMIN_KEY = document.getElementById('adminKeyInput').value.trim();
+    if (!ADMIN_KEY) return;
+    const btn = document.querySelector('.btn-p');
+    btn.disabled = true; btn.textContent = 'Verificando...';
+    try {
+      const res = await fetch(`${API}/admin/clientes`, {
+        headers: { 'x-admin-key': ADMIN_KEY }
+      });
+      if (!res.ok) {
+        document.getElementById('adminErr').textContent = 'Chave inválida';
+        document.getElementById('adminErr').style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Entrar'; return;
+      }
+      clientes = await res.json();
+      localStorage.setItem('hz_key', ADMIN_KEY);
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appScreen').style.display = 'block';
+      renderClientes();
+    } catch {
+      document.getElementById('adminErr').textContent = 'Erro de conexão';
+      document.getElementById('adminErr').style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Entrar';
+    }
+  }
+
+  function renderClientes() {
+    const ativos = clientes.filter(c => c.ativo).length;
+    const bloq = clientes.length - ativos;
+    document.getElementById('mTotal').textContent = clientes.length;
+    document.getElementById('mAtivos').textContent = ativos;
+    document.getElementById('mBloqueados').textContent = bloq;
+    document.getElementById('mDisp').textContent = clientes.reduce((s,c)=>s+(c.dispositivos_max||2),0);
+
+    const el = document.getElementById('listaClientes');
+    if (!clientes.length) {
+      el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Nenhum cliente cadastrado ainda.</div>';
+      return;
+    }
+    el.innerHTML = clientes.map((c, i) => {
+      const ini = c.nome_loja.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      return `<div class="cliente-row">
+        <div class="cliente-avatar">${ini}</div>
+        <div style="flex:1;min-width:0">
+          <div class="cliente-nome">${c.nome_loja}</div>
+          <div class="cliente-token">${c.token} · ${c.dispositivos_max||2} dispositivos · cadastrado ${new Date(c.criado_em).toLocaleDateString('pt-BR')}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="badge ${c.ativo?'bg':'br'}" id="badge-${c.id}">${c.ativo?'Ativo':'Bloqueado'}</span>
+          <label class="tgl">
+            <input type="checkbox" ${c.ativo?'checked':''} onchange="toggleCliente('${c.id}', this.checked)">
+            <div class="tgl-track"></div><div class="tgl-thumb"></div>
+          </label>
+          <button class="btn-danger" onclick="excluirCliente('${c.id}','${c.nome_loja}')">Excluir</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function toggleCliente(id, ativo) {
+    const badge = document.getElementById('badge-' + id);
+    try {
+      const res = await fetch(`${API}/admin/clientes/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type':'application/json', 'x-admin-key': ADMIN_KEY },
+        body: JSON.stringify({ ativo })
+      });
+      if (res.ok) {
+        const idx = clientes.findIndex(c=>c.id===id);
+        if (idx>=0) clientes[idx].ativo = ativo;
+        badge.className = 'badge ' + (ativo?'bg':'br');
+        badge.textContent = ativo ? 'Ativo' : 'Bloqueado';
+        const at = clientes.filter(c=>c.ativo).length;
+        document.getElementById('mAtivos').textContent = at;
+        document.getElementById('mBloqueados').textContent = clientes.length - at;
+      }
+    } catch { alert('Erro ao atualizar cliente'); }
+  }
+
+  async function excluirCliente(id, nome) {
+    if (!confirm(`Excluir "${nome}"? Esta ação não pode ser desfeita.`)) return;
+    try {
+      const res = await fetch(`${API}/admin/clientes/${id}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-key': ADMIN_KEY }
+      });
+      if (res.ok) {
+        clientes = clientes.filter(c=>c.id!==id);
+        renderClientes();
+      }
+    } catch { alert('Erro ao excluir'); }
+  }
+
+  async function carregarBaixas() {
+    try {
+      const res = await fetch(`${API}/admin/baixas`, { headers: {'x-admin-key': ADMIN_KEY} });
+      const baixas = await res.json();
+      const tb = document.getElementById('tBaixas');
+      if (!baixas.length) {
+        tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Nenhuma baixa registrada ainda.</td></tr>';
+        return;
+      }
+      tb.innerHTML = baixas.map(b => `<tr>
+        <td style="font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.produto_nome}</td>
+        <td style="color:var(--muted)">${b.clientes?.nome_loja||'—'}</td>
+        <td><span class="badge br">−${b.quantidade}</span></td>
+        <td style="font-weight:500">${b.estoque_depois}</td>
+        <td style="color:var(--muted);font-size:11px">${new Date(b.criado_em).toLocaleString('pt-BR')}</td>
+      </tr>`).join('');
+    } catch { document.getElementById('tBaixas').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:16px">Erro ao carregar</td></tr>'; }
+  }
+
+  function gerarToken() {
+    const nome = document.getElementById('nNome').value.trim();
+    const prefixo = nome ? nome.split(' ')[0].toUpperCase().replace(/[^A-Z]/g,'').slice(0,6) : 'LOJA';
+    const ano = new Date().getFullYear();
+    const rand = Math.random().toString(36).toUpperCase().slice(2,5);
+    document.getElementById('nToken').value = `${prefixo}-${ano}-${rand}`;
+  }
+
+  async function salvarCliente() {
+    const nome = document.getElementById('nNome').value.trim();
+    const token = document.getElementById('nToken').value.trim();
+    const disp = parseInt(document.getElementById('nDisp').value);
+    const errEl = document.getElementById('novoErr');
+    const okEl = document.getElementById('novoOk');
+    errEl.style.display = 'none'; okEl.style.display = 'none';
+    if (!nome || !token) { errEl.textContent = 'Nome e código são obrigatórios'; errEl.style.display = 'block'; return; }
+    try {
+      const res = await fetch(`${API}/admin/clientes`, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'x-admin-key': ADMIN_KEY },
+        body: JSON.stringify({ nome_loja: nome, token, dispositivos_max: disp })
+      });
+      const data = await res.json();
+      if (!res.ok) { errEl.textContent = data.error || 'Erro ao salvar'; errEl.style.display = 'block'; return; }
+      clientes.push(data);
+      okEl.textContent = `✓ ${nome} cadastrado com o código ${token}`;
+      okEl.style.display = 'block';
+      document.getElementById('nNome').value = '';
+      document.getElementById('nToken').value = '';
+      renderClientes();
+    } catch { errEl.textContent = 'Erro de conexão'; errEl.style.display = 'block'; }
+  }
+
+  function sw(id, btn) {
+    document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
+    document.getElementById('sec-'+id).classList.add('active');
+    btn.classList.add('active');
+    if (id==='baixas') carregarBaixas();
+    if (id==='clientes') renderClientes();
+  }
+
+  window.onload = function() {
+    const saved = localStorage.getItem('hz_key');
+    if (saved) { document.getElementById('adminKeyInput').value = saved; fazerLoginAdmin(); }
+  };
+</script>
+</body>
+</html>

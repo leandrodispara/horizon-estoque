@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rainha dos Calçados · Estoque</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --rose: #C8566A;
+      --rose-dark: #9E3A4F;
+      --rose-light: #F5E6EA;
+      --rose-pale: #FDF5F7;
+      --gold: #C9A84C;
+      --dark: #1C1118;
+      --mid: #4A3340;
+      --muted: #9B7F8A;
+      --border: rgba(200,86,106,0.15);
+      --white: #FFFFFF;
+      --success-bg: #EDF7ED;
+      --success: #2E7D32;
+      --warn-bg: #FFF8E6;
+      --warn: #B45309;
+      --danger-bg: #FEF2F2;
+      --danger: #C8566A;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--rose-pale);
+      color: var(--dark);
+      min-height: 100vh;
+    }
+
+    /* ── LOGIN ── */
+    #loginScreen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .login-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+    }
+    .brand-crown {
+      font-size: 36px;
+      margin-bottom: 8px;
+    }
+    .brand-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--rose-dark);
+      letter-spacing: 0.01em;
+    }
+    .brand-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 28px;
+      margin-top: 2px;
+    }
+    .field-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      text-align: left;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .field-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--dark);
+      background: var(--rose-pale);
+      outline: none;
+      transition: border-color 0.2s;
+      text-align: center;
+      letter-spacing: 0.08em;
+    }
+    .field-input:focus { border-color: var(--rose); background: white; }
+    .btn-primary {
+      width: 100%;
+      padding: 13px;
+      background: var(--rose);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 16px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-primary:hover { background: var(--rose-dark); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.6; cursor: default; }
+    .login-error {
+      font-size: 12px;
+      color: var(--danger);
+      background: var(--danger-bg);
+      border-radius: 8px;
+      padding: 9px 12px;
+      margin-top: 12px;
+      display: none;
+    }
+    .powered {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 28px;
+    }
+    .powered span { color: var(--rose); font-weight: 500; }
+
+    /* ── APP ── */
+    #appScreen { display: none; }
+    .topbar {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .topbar-crown { font-size: 18px; }
+    .topbar-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--rose-dark);
+    }
+    .topbar-status {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--success);
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+
+    .tabs-bar {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      padding: 0 20px;
+    }
+    .tab-btn {
+      padding: 13px 18px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--muted);
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      color: var(--rose-dark);
+      border-bottom-color: var(--rose);
+      font-weight: 500;
+    }
+
+    .content { padding: 20px; max-width: 640px; margin: 0 auto; }
+
+    /* ── CARDS MÉTRICA ── */
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+    .metric {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .metric-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+    .metric-value { font-size: 24px; font-weight: 500; color: var(--dark); line-height: 1; }
+    .metric-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .metric-warn .metric-value { color: var(--danger); }
+
+    /* ── CARD BASE ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--dark);
+    }
+
+    /* ── SCAN ── */
+    .scan-zone {
+      border: 1.5px dashed var(--rose-light);
+      border-radius: 12px;
+      background: var(--rose-pale);
+      padding: 24px 20px;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .scan-icon { font-size: 28px; margin-bottom: 8px; }
+    .scan-hint { font-size: 12px; color: var(--muted); }
+    .scan-beam-wrap { height: 3px; background: var(--rose-light); border-radius: 2px; margin: 10px auto; width: 70%; overflow: hidden; }
+    .scan-beam { height: 100%; background: var(--rose); border-radius: 2px; animation: beam 1.4s ease-in-out infinite; }
+    @keyframes beam { 0%,100%{width:20%;margin-left:0} 50%{width:70%;margin-left:15%} }
+
+    .ean-row { display: flex; gap: 8px; }
+    .ean-input {
+      flex: 1;
+      padding: 11px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      color: var(--dark);
+      background: var(--rose-pale);
+      outline: none;
+      transition: border-color 0.2s;
+      letter-spacing: 0.04em;
+    }
+    .ean-input:focus { border-color: var(--rose); background: white; }
+    .btn-search {
+      padding: 11px 18px;
+      background: var(--rose);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+    .btn-search:hover { background: var(--rose-dark); }
+
+    /* ── PRODUTO ENCONTRADO ── */
+    .produto-card {
+      background: var(--rose-pale);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 14px;
+      display: none;
+    }
+    .produto-label { font-size: 11px; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .produto-nome { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--dark); margin-bottom: 8px; }
+    .produto-info { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .estoque-badge {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .badge-ok { background: #EAF3DE; color: #3B6D11; }
+    .badge-low { background: var(--warn-bg); color: var(--warn); }
+    .badge-zero { background: var(--danger-bg); color: var(--danger); }
+
+    .qty-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .qty-label { font-size: 12px; color: var(--muted); }
+    .qty-ctrl { display: flex; align-items: center; gap: 10px; }
+    .qty-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: white;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--rose);
+      transition: background 0.15s;
+    }
+    .qty-btn:hover { background: var(--rose-light); }
+    .qty-num { font-size: 18px; font-weight: 500; min-width: 28px; text-align: center; color: var(--dark); }
+    .btn-baixa {
+      margin-left: auto;
+      padding: 10px 20px;
+      background: var(--rose);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-baixa:hover { background: var(--rose-dark); }
+    .btn-baixa:active { transform: scale(0.97); }
+
+    /* ── ALERTAS ── */
+    .alert-warn {
+      background: var(--warn-bg);
+      border: 1px solid #FDE68A;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--warn);
+      margin-top: 10px;
+      display: none;
+    }
+    .alert-notfound {
+      background: var(--danger-bg);
+      border: 1px solid #FECACA;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--danger);
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* ── SUCESSO ── */
+    .success-box {
+      background: var(--success-bg);
+      border: 1px solid #A7D7A9;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      margin-top: 14px;
+      display: none;
+    }
+    .success-icon { font-size: 32px; margin-bottom: 8px; }
+    .success-title { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--success); margin-bottom: 4px; }
+    .success-msg { font-size: 12px; color: #4A7C4E; }
+    .success-actions { display: flex; gap: 8px; margin-top: 14px; }
+    .btn-next {
+      flex: 1;
+      padding: 10px;
+      background: var(--rose);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn-ghost {
+      padding: 10px 14px;
+      background: white;
+      color: var(--dark);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    /* ── ESTOQUE TABLE ── */
+    .search-bar {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      color: var(--dark);
+      background: var(--rose-pale);
+      outline: none;
+      margin-bottom: 14px;
+    }
+    .search-bar:focus { border-color: var(--rose); background: white; }
+    .prod-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--rose-pale);
+    }
+    .prod-item:last-child { border-bottom: none; }
+    .prod-shoe { font-size: 20px; flex-shrink: 0; }
+    .prod-info { flex: 1; min-width: 0; }
+    .prod-nome {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--dark);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .prod-ean { font-size: 11px; color: var(--muted); font-family: monospace; }
+    .prod-stock { text-align: right; flex-shrink: 0; }
+    .stock-num { font-size: 15px; font-weight: 500; color: var(--dark); }
+    .stock-bar { width: 60px; height: 4px; background: var(--rose-light); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+    .stock-fill { height: 100%; border-radius: 2px; }
+
+    /* ── HISTÓRICO ── */
+    .hist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--rose-pale);
+    }
+    .hist-item:last-child { border-bottom: none; }
+    .hist-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); flex-shrink: 0; margin-top: 4px; }
+    .hist-nome { font-size: 13px; font-weight: 500; color: var(--dark); }
+    .hist-detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .hist-hora { font-size: 11px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+    .empty-state { text-align: center; padding: 28px; color: var(--muted); font-size: 13px; }
+
+    /* ── SYNC BTN ── */
+    .btn-sync {
+      padding: 7px 14px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--rose-dark);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-sync:hover { background: var(--rose-light); }
+
+    .sec { display: none; }
+    .sec.active { display: block; }
+
+    @media (max-width: 400px) {
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .tab-btn { padding: 13px 12px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── TELA DE LOGIN ── -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="brand-crown">👑</div>
+    <div class="brand-name">Rainha dos Calçados</div>
+    <div class="brand-sub">Sistema de Baixa de Estoque</div>
+
+    <label class="field-label">Código de acesso</label>
+    <input type="text" class="field-input" id="tokenInput"
+      placeholder="RAINHA-2025-RC1"
+      autocomplete="off" autocorrect="off" spellcheck="false">
+
+    <button class="btn-primary" id="btnLogin" onclick="fazerLogin()">Entrar</button>
+    <div class="login-error" id="loginError"></div>
+
+    <p class="powered">Desenvolvido por <span>Horizon Consultoria</span></p>
+  </div>
+</div>
+
+<!-- ── TELA DO APP ── -->
+<div id="appScreen">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <span class="topbar-crown">👑</span>
+      <span class="topbar-name">Rainha dos Calçados</span>
+    </div>
+    <div class="topbar-status">
+      <div class="dot"></div>
+      ML conectado
+    </div>
+  </div>
+
+  <div class="tabs-bar">
+    <button class="tab-btn active" onclick="irPara('bipar', this)">Bipar</button>
+    <button class="tab-btn" onclick="irPara('estoque', this)">Estoque</button>
+    <button class="tab-btn" onclick="irPara('historico', this)">Histórico</button>
+  </div>
+
+  <!-- ── TAB BIPAR ── -->
+  <div class="content">
+    <div class="sec active" id="sec-bipar">
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">Baixas hoje</div>
+          <div class="metric-value" id="mBaixas">0</div>
+          <div class="metric-sub">nesta sessão</div>
+        </div>
+        <div class="metric metric-warn">
+          <div class="metric-label">Zerados</div>
+          <div class="metric-value" id="mZerados">—</div>
+          <div class="metric-sub">atenção</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Anúncios</div>
+          <div class="metric-value" id="mAnuncios">—</div>
+          <div class="metric-sub">sincronizados</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Leitura de produto</span>
+          <button class="btn-sync" id="btnSync" onclick="sincronizar()">↻ Atualizar</button>
+        </div>
+
+        <div class="scan-zone">
+          <div class="scan-icon">&#9646;&#9647;&#9646;&#9647;&#9646;</div>
+          <div class="scan-beam-wrap"><div class="scan-beam"></div></div>
+          <div class="scan-hint">Aponte o leitor ou câmera para o código de barras</div>
+        </div>
+
+        <div class="ean-row">
+          <input type="text" class="ean-input" id="eanInput"
+            placeholder="ou digite o EAN aqui..."
+            inputmode="numeric" autocomplete="off"
+            onkeydown="if(event.key==='Enter') buscarEAN()">
+          <button class="btn-search" onclick="buscarEAN()">Buscar</button>
+        </div>
+
+        <div class="produto-card" id="produtoCard">
+          <div class="produto-label">Produto identificado</div>
+          <div class="produto-nome" id="pcNome"></div>
+          <div class="produto-info">
+            <span style="font-size:12px;color:var(--muted)">Estoque: <strong id="pcEst"></strong></span>
+            <span class="estoque-badge" id="pcBadge"></span>
+          </div>
+          <div class="alert-warn" id="alertWarn">
+            ⚠ Estoque baixo — considere reabastecer este item.
+          </div>
+          <div class="qty-section">
+            <span class="qty-label">Quantidade:</span>
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="chQty(-1)">−</button>
+              <span class="qty-num" id="qtyNum">1</span>
+              <button class="qty-btn" onclick="chQty(1)">+</button>
+            </div>
+            <button class="btn-baixa" onclick="darBaixa()">✓ Dar baixa</button>
+          </div>
+        </div>
+
+        <div class="alert-notfound" id="alertNotFound">
+          Produto não encontrado. Clique em "Atualizar" para sincronizar novos anúncios.
+        </div>
+
+        <div class="success-box" id="successBox">
+          <div class="success-icon">✓</div>
+          <div class="success-title">Estoque atualizado!</div>
+          <div class="success-msg" id="successMsg"></div>
+          <div class="success-actions">
+            <button class="btn-next" onclick="novaBipagem()">Bipar próximo</button>
+            <button class="btn-ghost" onclick="irPara('historico', document.querySelectorAll('.tab-btn')[2])">Ver histórico</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB ESTOQUE ── -->
+    <div class="sec" id="sec-estoque">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Meus anúncios</span>
+          <button class="btn-sync" onclick="sincronizar()">↻ Sync ML</button>
+        </div>
+        <input type="text" class="search-bar" placeholder="Buscar produto ou EAN..."
+          oninput="filtrarProdutos(this.value)" id="searchInput">
+        <div id="listaProdutos"></div>
+      </div>
+    </div>
+
+    <!-- ── TAB HISTÓRICO ── -->
+    <div class="sec" id="sec-historico">
+      <div class="metrics" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
+        <div class="metric">
+          <div class="metric-label">Total na sessão</div>
+          <div class="metric-value" id="hTotal">0</div>
+          <div class="metric-sub">baixas</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Último item</div>
+          <div class="metric-value" style="font-size:13px;padding-top:5px" id="hUltimo">—</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Registro do dia</span>
+          <span style="font-size:11px;color:var(--muted)" id="hData"></span>
+        </div>
+        <div id="listaHistorico"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = 'https://SEU-PROJETO.onrender.com'; // ← troque pela URL do Render
+  let TOKEN = '';
+  let CLIENTE_ID = '';
+  let anuncios = [];
+  let historico = [];
+  let qty = 1;
+  let curProd = null;
+  let baixasHoje = 0;
+
+  // ── LOGIN ──
+  async function fazerLogin() {
+    const btn = document.getElementById('btnLogin');
+    const err = document.getElementById('loginError');
+    TOKEN = document.getElementById('tokenInput').value.trim();
+    if (!TOKEN) { showErr('Digite o código de acesso'); return; }
+    btn.disabled = true;
+    btn.textContent = 'Verificando...';
+    err.style.display = 'none';
+    try {
+      const res = await fetch(`${API}/auth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: TOKEN })
+      });
+      const data = await res.json();
+      if (!res.ok) { showErr(data.error || 'Erro ao entrar'); btn.disabled = false; btn.textContent = 'Entrar'; return; }
+      CLIENTE_ID = data.clienteId;
+      localStorage.setItem('rc_token', TOKEN);
+      entrarNoApp();
+    } catch {
+      showErr('Sem conexão com o servidor. Tente novamente.');
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
+    }
+  }
+
+  function showErr(msg) {
+    const el = document.getElementById('loginError');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  async function entrarNoApp() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    await carregarAnuncios();
+    const d = new Date();
+    document.getElementById('hData').textContent = d.toLocaleDateString('pt-BR');
+  }
+
+  // ── ANÚNCIOS ──
+  async function carregarAnuncios() {
+    try {
+      const res = await fetch(`${API}/anuncios`, { headers: { 'x-access-token': TOKEN } });
+      if (!res.ok) return;
+      anuncios = await res.json();
+      atualizarMetricas();
+      renderizarEstoque(anuncios);
+    } catch {}
+  }
+
+  function atualizarMetricas() {
+    const zerados = anuncios.filter(a => a.estoque === 0).length;
+    document.getElementById('mAnuncios').textContent = anuncios.length;
+    document.getElementById('mZerados').textContent = zerados || '0';
+    document.getElementById('mBaixas').textContent = baixasHoje;
+  }
+
+  async function sincronizar() {
+    const btn = document.getElementById('btnSync');
+    btn.textContent = 'Sincronizando...';
+    btn.disabled = true;
+    try {
+      const res = await fetch(`${API}/sincronizar`, {
+        method: 'POST',
+        headers: { 'x-access-token': TOKEN }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        await carregarAnuncios();
+        btn.textContent = `✓ ${data.total} itens`;
+        setTimeout(() => { btn.textContent = '↻ Atualizar'; btn.disabled = false; }, 2500);
+      } else {
+        btn.textContent = '↻ Atualizar';
+        btn.disabled = false;
+      }
+    } catch {
+      btn.textContent = '↻ Atualizar';
+      btn.disabled = false;
+    }
+  }
+
+  // ── BUSCA EAN ──
+  async function buscarEAN() {
+    const ean = document.getElementById('eanInput').value.trim();
+    if (!ean) return;
+    hide('produtoCard'); hide('alertNotFound'); hide('successBox');
+    qty = 1;
+    curProd = anuncios.find(a => a.ean === ean);
+    if (!curProd) {
+      try {
+        const res = await fetch(`${API}/produto/${ean}`, { headers: { 'x-access-token': TOKEN } });
+        if (res.ok) curProd = await res.json();
+      } catch {}
+    }
+    if (!curProd) { show('alertNotFound'); return; }
+    document.getElementById('pcNome').textContent = curProd.nome;
+    document.getElementById('pcEst').textContent = curProd.estoque;
+    document.getElementById('qtyNum').textContent = 1;
+    const badge = document.getElementById('pcBadge');
+    const warn = document.getElementById('alertWarn');
+    const ratio = curProd.estoque / (curProd.estoque_max || 20);
+    if (curProd.estoque === 0) {
+      badge.className = 'estoque-badge badge-zero'; badge.textContent = 'Zerado';
+    } else if (ratio < 0.2) {
+      badge.className = 'estoque-badge badge-low'; badge.textContent = 'Estoque baixo';
+      warn.style.display = 'block';
+    } else {
+      badge.className = 'estoque-badge badge-ok'; badge.textContent = 'Normal';
+      warn.style.display = 'none';
+    }
+    show('produtoCard');
+  }
+
+  function chQty(d) {
+    if (!curProd) return;
+    const max = curProd.estoque || 1;
+    qty = Math.max(1, Math.min(max, qty + d));
+    document.getElementById('qtyNum').textContent = qty;
+  }
+
+  async function darBaixa() {
+    if (!curProd) return;
+    if (curProd.estoque === 0) { alert('Estoque já zerado!'); return; }
+    const btn = document.querySelector('.btn-baixa');
+    btn.disabled = true; btn.textContent = 'Aguarde...';
+    try {
+      const res = await fetch(`${API}/baixa`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-access-token': TOKEN },
+        body: JSON.stringify({ ean: curProd.ean, quantidade: qty })
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error); btn.disabled = false; btn.textContent = '✓ Dar baixa'; return; }
+      const idx = anuncios.findIndex(a => a.ean === curProd.ean);
+      if (idx >= 0) anuncios[idx].estoque = data.estoque_novo;
+      baixasHoje++;
+      const now = new Date();
+      const hora = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+      historico.unshift({ nome: curProd.nome, qtd: qty, estoque_depois: data.estoque_novo, hora });
+      document.getElementById('successMsg').textContent =
+        `${curProd.nome} · −${qty} un · novo estoque: ${data.estoque_novo}`;
+      hide('produtoCard');
+      show('successBox');
+      atualizarMetricas();
+      renderizarHistorico();
+    } catch {
+      alert('Erro de conexão. Tente novamente.');
+    }
+    btn.disabled = false; btn.textContent = '✓ Dar baixa';
+  }
+
+  function novaBipagem() {
+    hide('successBox'); hide('produtoCard'); hide('alertNotFound');
+    document.getElementById('eanInput').value = '';
+    curProd = null; qty = 1;
+    document.getElementById('eanInput').focus();
+  }
+
+  // ── ESTOQUE ──
+  function renderizarEstoque(lista) {
+    const el = document.getElementById('listaProdutos');
+    if (!lista.length) { el.innerHTML = '<div class="empty-state">Nenhum anúncio encontrado.<br>Clique em "Sync ML" para sincronizar.</div>'; return; }
+    el.innerHTML = lista.map(p => {
+      const pct = p.estoque_max ? Math.round(p.estoque / p.estoque_max * 100) : Math.min(100, p.estoque * 5);
+      const cor = p.estoque === 0 ? '#C8566A' : pct < 20 ? '#C9A84C' : '#639922';
+      return `<div class="prod-item">
+        <span class="prod-shoe">👟</span>
+        <div class="prod-info">
+          <div class="prod-nome">${p.nome}</div>
+          <div class="prod-ean">${p.ean || 'Sem EAN'}</div>
+        </div>
+        <div class="prod-stock">
+          <div class="stock-num" style="color:${p.estoque===0?'var(--danger)':'var(--dark)'}">${p.estoque}</div>
+          <div class="stock-bar"><div class="stock-fill" style="width:${Math.min(100,pct)}%;background:${cor}"></div></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function filtrarProdutos(q) {
+    const f = anuncios.filter(p =>
+      p.nome.toLowerCase().includes(q.toLowerCase()) ||
+      (p.ean && p.ean.includes(q))
+    );
+    renderizarEstoque(f);
+  }
+
+  // ── HISTÓRICO ──
+  function renderizarHistorico() {
+    document.getElementById('hTotal').textContent = historico.length;
+    document.getElementById('hUltimo').textContent = historico.length
+      ? historico[0].nome.split(' ').slice(0,2).join(' ') + '…'
+      : '—';
+    const el = document.getElementById('listaHistorico');
+    if (!historico.length) {
+      el.innerHTML = '<div class="empty-state">Nenhuma baixa registrada ainda.</div>';
+      return;
+    }
+    el.innerHTML = historico.slice(0, 50).map(h => `
+      <div class="hist-item">
+        <div class="hist-dot"></div>
+        <div style="flex:1">
+          <div class="hist-nome">${h.nome}</div>
+          <div class="hist-detail">−${h.qtd} unidade${h.qtd > 1 ? 's' : ''} · estoque ficou em ${h.estoque_depois}</div>
+        </div>
+        <div class="hist-hora">${h.hora}</div>
+      </div>`).join('');
+  }
+
+  // ── NAVEGAÇÃO ──
+  function irPara(id, btn) {
+    document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+    document.getElementById('sec-' + id).classList.add('active');
+    btn.classList.add('active');
+    if (id === 'historico') renderizarHistorico();
+  }
+
+  function show(id) { document.getElementById(id).style.display = 'block'; }
+  function hide(id) { document.getElementById(id).style.display = 'none'; }
+
+  // ── AUTO-LOGIN ──
+  window.onload = function() {
+    const saved = localStorage.getItem('rc_token');
+    if (saved) {
+      document.getElementById('tokenInput').value = saved;
+      TOKEN = saved;
+      fazerLogin();
+    }
+  };
+</script>
+</body>
+</html>
