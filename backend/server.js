@@ -48,7 +48,7 @@ async function getMLToken() {
     }
     return mlAccessToken;
   } catch (err) {
-    console.error('Erro ao renovar token ML:', err.response?.data || err.message);
+    console.error('Erro ao renovar token ML:', JSON.stringify(err.response?.data) || err.message, 'status:', err.response?.status);
     throw new Error('Falha na autenticação com Mercado Livre');
   }
 }
