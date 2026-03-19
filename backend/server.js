@@ -15,19 +15,36 @@ const supabase = createClient(
 let mlAccessToken = null;
 let mlTokenExpiry = 0;
 
+async function getRefreshToken() {
+  const { data, error } = await supabase
+    .from('config')
+    .select('valor')
+    .eq('chave', 'ml_refresh_token')
+    .single();
+  if (error || !data) return process.env.ML_REFRESH_TOKEN;
+  return data.valor;
+}
+
+async function saveRefreshToken(token) {
+  await supabase
+    .from('config')
+    .upsert({ chave: 'ml_refresh_token', valor: token, atualizado_em: new Date().toISOString() });
+}
+
 async function getMLToken() {
   if (mlAccessToken && Date.now() < mlTokenExpiry) return mlAccessToken;
   try {
+    const refreshToken = await getRefreshToken();
     const res = await axios.post('https://api.mercadolibre.com/oauth/token', {
       grant_type: 'refresh_token',
       client_id: process.env.ML_CLIENT_ID,
       client_secret: process.env.ML_CLIENT_SECRET,
-      refresh_token: process.env.ML_REFRESH_TOKEN
+      refresh_token: refreshToken
     });
     mlAccessToken = res.data.access_token;
     mlTokenExpiry = Date.now() + (res.data.expires_in - 300) * 1000;
     if (res.data.refresh_token) {
-      process.env.ML_REFRESH_TOKEN = res.data.refresh_token;
+      await saveRefreshToken(res.data.refresh_token);
     }
     return mlAccessToken;
   } catch (err) {
@@ -36,25 +53,20 @@ async function getMLToken() {
   }
 }
 
-// Middleware de autenticação do cliente
 async function authMiddleware(req, res, next) {
   const token = req.headers['x-access-token'];
   if (!token) return res.status(401).json({ error: 'Token não fornecido' });
-
   const { data, error } = await supabase
     .from('clientes')
     .select('*')
     .eq('token', token)
     .single();
-
   if (error || !data) return res.status(401).json({ error: 'Token inválido' });
   if (!data.ativo) return res.status(403).json({ error: 'Acesso suspenso. Entre em contato com a Horizon Consultoria.' });
-
   req.cliente = data;
   next();
 }
 
-// Middleware de autenticação admin
 function adminAuth(req, res, next) {
   const key = req.headers['x-admin-key'];
   if (key !== process.env.ADMIN_KEY) return res.status(401).json({ error: 'Não autorizado' });
@@ -63,36 +75,29 @@ function adminAuth(req, res, next) {
 
 // ─── ROTAS CLIENTE ───────────────────────────────────────────
 
-// Validar token e retornar dados da loja
 app.post('/auth', async (req, res) => {
   const { token } = req.body;
   if (!token) return res.status(400).json({ error: 'Token obrigatório' });
-
   const { data, error } = await supabase
     .from('clientes')
     .select('id, nome_loja, token, ativo, dispositivos_max')
     .eq('token', token)
     .single();
-
   if (error || !data) return res.status(401).json({ error: 'Código de acesso inválido' });
   if (!data.ativo) return res.status(403).json({ error: 'Acesso suspenso. Entre em contato com a Horizon Consultoria.' });
-
   res.json({ ok: true, loja: data.nome_loja, clienteId: data.id });
 });
 
-// Buscar anúncios sincronizados
 app.get('/anuncios', authMiddleware, async (req, res) => {
   const { data, error } = await supabase
     .from('anuncios')
     .select('*')
     .eq('cliente_id', req.cliente.id)
     .order('nome');
-
   if (error) return res.status(500).json({ error: 'Erro ao buscar anúncios' });
   res.json(data);
 });
 
-// Buscar produto por EAN
 app.get('/produto/:ean', authMiddleware, async (req, res) => {
   const { data, error } = await supabase
     .from('anuncios')
@@ -100,32 +105,26 @@ app.get('/produto/:ean', authMiddleware, async (req, res) => {
     .eq('cliente_id', req.cliente.id)
     .eq('ean', req.params.ean)
     .single();
-
   if (error || !data) return res.status(404).json({ error: 'Produto não encontrado. Sincronize os anúncios.' });
   res.json(data);
 });
 
-// Dar baixa no estoque
 app.put('/baixa', authMiddleware, async (req, res) => {
   const { ean, quantidade } = req.body;
   if (!ean || !quantidade || quantidade < 1) {
     return res.status(400).json({ error: 'EAN e quantidade são obrigatórios' });
   }
-
   const { data: produto, error: prodErr } = await supabase
     .from('anuncios')
     .select('*')
     .eq('cliente_id', req.cliente.id)
     .eq('ean', ean)
     .single();
-
   if (prodErr || !produto) return res.status(404).json({ error: 'Produto não encontrado' });
   if (produto.estoque < quantidade) {
     return res.status(400).json({ error: `Estoque insuficiente. Disponível: ${produto.estoque}` });
   }
-
   const novoEstoque = produto.estoque - quantidade;
-
   try {
     const token = await getMLToken();
     await axios.put(
@@ -136,12 +135,10 @@ app.put('/baixa', authMiddleware, async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Erro ao atualizar estoque no Mercado Livre' });
   }
-
   await supabase
     .from('anuncios')
     .update({ estoque: novoEstoque, atualizado_em: new Date().toISOString() })
     .eq('id', produto.id);
-
   await supabase.from('baixas').insert({
     cliente_id: req.cliente.id,
     anuncio_id: produto.id,
@@ -152,7 +149,6 @@ app.put('/baixa', authMiddleware, async (req, res) => {
     estoque_depois: novoEstoque,
     criado_em: new Date().toISOString()
   });
-
   res.json({
     ok: true,
     produto: produto.nome,
@@ -162,20 +158,16 @@ app.put('/baixa', authMiddleware, async (req, res) => {
   });
 });
 
-// Sincronizar anúncios do ML
 app.post('/sincronizar', authMiddleware, async (req, res) => {
   try {
     const token = await getMLToken();
-
     const meRes = await axios.get('https://api.mercadolibre.com/users/me', {
       headers: { Authorization: `Bearer ${token}` }
     });
     const userId = meRes.data.id;
-
     let offset = 0;
     const limit = 50;
     let todos = [];
-
     while (true) {
       const listRes = await axios.get(
         `https://api.mercadolibre.com/users/${userId}/items/search?limit=${limit}&offset=${offset}`,
@@ -183,18 +175,15 @@ app.post('/sincronizar', authMiddleware, async (req, res) => {
       );
       const ids = listRes.data.results;
       if (!ids.length) break;
-
       const detalhes = await axios.get(
         `https://api.mercadolibre.com/items?ids=${ids.join(',')}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       for (const item of detalhes.data) {
         if (item.code !== 200) continue;
         const body = item.body;
         const eanAttr = body.attributes?.find(a => a.id === 'EAN' || a.id === 'GTIN');
         const ean = eanAttr?.values?.[0]?.name || null;
-
         todos.push({
           cliente_id: req.cliente.id,
           ml_item_id: body.id,
@@ -206,17 +195,14 @@ app.post('/sincronizar', authMiddleware, async (req, res) => {
           atualizado_em: new Date().toISOString()
         });
       }
-
       offset += limit;
       if (offset >= listRes.data.paging.total) break;
     }
-
     for (const anuncio of todos) {
       await supabase
         .from('anuncios')
         .upsert(anuncio, { onConflict: 'cliente_id,ml_item_id' });
     }
-
     res.json({ ok: true, total: todos.length, mensagem: `${todos.length} anúncios sincronizados` });
   } catch (err) {
     console.error(err.message);
@@ -224,7 +210,6 @@ app.post('/sincronizar', authMiddleware, async (req, res) => {
   }
 });
 
-// Histórico de baixas do cliente
 app.get('/historico', authMiddleware, async (req, res) => {
   const { data, error } = await supabase
     .from('baixas')
@@ -232,7 +217,6 @@ app.get('/historico', authMiddleware, async (req, res) => {
     .eq('cliente_id', req.cliente.id)
     .order('criado_em', { ascending: false })
     .limit(100);
-
   if (error) return res.status(500).json({ error: 'Erro ao buscar histórico' });
   res.json(data);
 });
@@ -251,13 +235,11 @@ app.get('/admin/clientes', adminAuth, async (req, res) => {
 app.post('/admin/clientes', adminAuth, async (req, res) => {
   const { nome_loja, token, dispositivos_max } = req.body;
   if (!nome_loja || !token) return res.status(400).json({ error: 'Nome e token obrigatórios' });
-
   const { data, error } = await supabase
     .from('clientes')
     .insert({ nome_loja, token, dispositivos_max: dispositivos_max || 2, ativo: true, criado_em: new Date().toISOString() })
     .select()
     .single();
-
   if (error) return res.status(500).json({ error });
   res.json(data);
 });
@@ -290,7 +272,6 @@ app.get('/admin/baixas', adminAuth, async (req, res) => {
   res.json(data);
 });
 
-// Health check (usado pelo UptimeRobot)
 app.get('/ping', (req, res) => res.json({ ok: true, ts: Date.now() }));
 
 const PORT = process.env.PORT || 3000;
