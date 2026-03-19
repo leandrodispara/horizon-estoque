@@ -208,7 +208,7 @@ app.post('/sincronizar', authMiddleware, async (req, res) => {
     }
     res.json({ ok: true, total: todos.length, mensagem: `${todos.length} anúncios sincronizados` });
   } catch (err) {
-    console.error(err.message);
+    console.error('SYNC ERROR:', err.message, JSON.stringify(err.response?.data), 'status:', err.response?.status);
     res.status(500).json({ error: 'Erro ao sincronizar anúncios' });
   }
 });
