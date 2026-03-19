@@ -47,7 +47,7 @@ async function getMLToken() {
       await saveRefreshToken(res.data.refresh_token);
     }
     return mlAccessToken;
- } catch (err) {
+  } catch (err) {
     const errData = err.response?.data;
     const errStatus = err.response?.status;
     console.error('ML AUTH ERROR:', errStatus, JSON.stringify(errData));
@@ -171,6 +171,7 @@ app.post('/sincronizar', authMiddleware, async (req, res) => {
     let offset = 0;
     const limit = 50;
     let todos = [];
+
     while (true) {
       const listRes = await axios.get(
         `https://api.mercadolibre.com/users/${userId}/items/search?limit=${limit}&offset=${offset}`,
@@ -178,57 +179,45 @@ app.post('/sincronizar', authMiddleware, async (req, res) => {
       );
       const ids = listRes.data.results;
       if (!ids.length) break;
-const chunks = [];
-for (let i = 0; i < ids.length; i += 20) {
-  chunks.push(ids.slice(i, i + 20));
-}
-for (const chunk of chunks) {
-  const detalhes = await axios.get(
-    `https://api.mercadolibre.com/items?ids=${chunk.join(',')}`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  for (const item of detalhes.data) {
-    if (item.code !== 200) continue;
-    const body = item.body;
-    const eanAttr = body.attributes?.find(a => a.id === 'EAN' || a.id === 'GTIN');
-    const ean = eanAttr?.values?.[0]?.name || null;
-    todos.push({
-      cliente_id: req.cliente.id,
-      ml_item_id: body.id,
-      nome: body.title,
-      ean: ean,
-      estoque: body.available_quantity,
-      preco: body.price,
-      status: body.status,
-      atualizado_em: new Date().toISOString()
-    });
-  }
-}
-      );
-      for (const item of detalhes.data) {
-        if (item.code !== 200) continue;
-        const body = item.body;
-        const eanAttr = body.attributes?.find(a => a.id === 'EAN' || a.id === 'GTIN');
-        const ean = eanAttr?.values?.[0]?.name || null;
-        todos.push({
-          cliente_id: req.cliente.id,
-          ml_item_id: body.id,
-          nome: body.title,
-          ean: ean,
-          estoque: body.available_quantity,
-          preco: body.price,
-          status: body.status,
-          atualizado_em: new Date().toISOString()
-        });
+
+      const chunks = [];
+      for (let i = 0; i < ids.length; i += 20) {
+        chunks.push(ids.slice(i, i + 20));
       }
+
+      for (const chunk of chunks) {
+        const detalhes = await axios.get(
+          `https://api.mercadolibre.com/items?ids=${chunk.join(',')}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        for (const item of detalhes.data) {
+          if (item.code !== 200) continue;
+          const body = item.body;
+          const eanAttr = body.attributes?.find(a => a.id === 'EAN' || a.id === 'GTIN');
+          const ean = eanAttr?.values?.[0]?.name || null;
+          todos.push({
+            cliente_id: req.cliente.id,
+            ml_item_id: body.id,
+            nome: body.title,
+            ean: ean,
+            estoque: body.available_quantity,
+            preco: body.price,
+            status: body.status,
+            atualizado_em: new Date().toISOString()
+          });
+        }
+      }
+
       offset += limit;
       if (offset >= listRes.data.paging.total) break;
     }
+
     for (const anuncio of todos) {
       await supabase
         .from('anuncios')
         .upsert(anuncio, { onConflict: 'cliente_id,ml_item_id' });
     }
+
     res.json({ ok: true, total: todos.length, mensagem: `${todos.length} anúncios sincronizados` });
   } catch (err) {
     console.error('SYNC ERROR:', err.message, JSON.stringify(err.response?.data), 'status:', err.response?.status);
