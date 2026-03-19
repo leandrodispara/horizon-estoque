@@ -47,8 +47,11 @@ async function getMLToken() {
       await saveRefreshToken(res.data.refresh_token);
     }
     return mlAccessToken;
-  } catch (err) {
-    console.error('Erro ao renovar token ML:', JSON.stringify(err.response?.data) || err.message, 'status:', err.response?.status);
+ } catch (err) {
+    const errData = err.response?.data;
+    const errStatus = err.response?.status;
+    console.error('ML AUTH ERROR:', errStatus, JSON.stringify(errData));
+    console.error('TOKEN USADO:', (await getRefreshToken()).substring(0, 20));
     throw new Error('Falha na autenticação com Mercado Livre');
   }
 }
