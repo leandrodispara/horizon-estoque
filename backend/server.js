@@ -178,9 +178,32 @@ app.post('/sincronizar', authMiddleware, async (req, res) => {
       );
       const ids = listRes.data.results;
       if (!ids.length) break;
-      const detalhes = await axios.get(
-        `https://api.mercadolibre.com/items?ids=${ids.join(',')}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+const chunks = [];
+for (let i = 0; i < ids.length; i += 20) {
+  chunks.push(ids.slice(i, i + 20));
+}
+for (const chunk of chunks) {
+  const detalhes = await axios.get(
+    `https://api.mercadolibre.com/items?ids=${chunk.join(',')}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  for (const item of detalhes.data) {
+    if (item.code !== 200) continue;
+    const body = item.body;
+    const eanAttr = body.attributes?.find(a => a.id === 'EAN' || a.id === 'GTIN');
+    const ean = eanAttr?.values?.[0]?.name || null;
+    todos.push({
+      cliente_id: req.cliente.id,
+      ml_item_id: body.id,
+      nome: body.title,
+      ean: ean,
+      estoque: body.available_quantity,
+      preco: body.price,
+      status: body.status,
+      atualizado_em: new Date().toISOString()
+    });
+  }
+}
       );
       for (const item of detalhes.data) {
         if (item.code !== 200) continue;
