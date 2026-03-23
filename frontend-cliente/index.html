@@ -229,7 +229,8 @@
       text-align: center;
       margin-bottom: 14px;
     }
-    .scan-icon { font-size: 28px; margin-bottom: 8px; }
+    .btn-camera { padding: 9px 18px; background: var(--rose); color: white; border: none; border-radius: 9px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+    .btn-camera:hover { background: var(--rose-dark); }
     .scan-hint { font-size: 12px; color: var(--muted); }
     .scan-beam-wrap { height: 3px; background: var(--rose-light); border-radius: 2px; margin: 10px auto; width: 70%; overflow: hidden; }
     .scan-beam { height: 100%; background: var(--rose); border-radius: 2px; animation: beam 1.4s ease-in-out infinite; }
@@ -532,10 +533,17 @@
           <button class="btn-sync" id="btnSync" onclick="sincronizar()">↻ Atualizar</button>
         </div>
 
-        <div class="scan-zone">
-          <div class="scan-icon">&#9646;&#9647;&#9646;&#9647;&#9646;</div>
-          <div class="scan-beam-wrap"><div class="scan-beam"></div></div>
-          <div class="scan-hint">Aponte o leitor ou câmera para o código de barras</div>
+        <div class="scan-zone" id="scanZone">
+          <div id="scanInativo">
+            <div class="scan-beam-wrap"><div class="scan-beam"></div></div>
+            <div class="scan-hint" style="margin-bottom:10px">Leitor USB pronto — ou use a câmera</div>
+            <button class="btn-camera" onclick="abrirCamera()">📷 Usar câmera do celular</button>
+          </div>
+          <div id="scanAtivo" style="display:none">
+            <video id="scanVideo" style="width:100%;border-radius:8px;max-height:220px;object-fit:cover"></video>
+            <div class="scan-beam-wrap" style="margin-top:8px"><div class="scan-beam"></div></div>
+            <button class="btn-camera" style="margin-top:8px;background:var(--rose-light);color:var(--rose-dark)" onclick="fecharCamera()">✕ Fechar câmera</button>
+          </div>
         </div>
 
         <div class="ean-row">
@@ -621,7 +629,7 @@
 </div>
 
 <script>
-  const API = 'https://horizon-estoque.onrender.com'; // ← troque pela URL do Render
+  const API = 'https://SEU-PROJETO.onrender.com'; // ← troque pela URL do Render
   let TOKEN = '';
   let CLIENTE_ID = '';
   let anuncios = [];
@@ -862,6 +870,42 @@
       fazerLogin();
     }
   };
+</script>
+
+<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+<script>
+  let codeReader = null;
+  let cameraAtiva = false;
+
+  async function abrirCamera() {
+    try {
+      codeReader = new ZXing.BrowserMultiFormatReader();
+      const devices = await codeReader.listVideoInputDevices();
+      if (!devices.length) { alert('Nenhuma câmera encontrada.'); return; }
+      const deviceId = devices[devices.length - 1].deviceId;
+      document.getElementById('scanInativo').style.display = 'none';
+      document.getElementById('scanAtivo').style.display = 'block';
+      cameraAtiva = true;
+      await codeReader.decodeFromVideoDevice(deviceId, 'scanVideo', (result, err) => {
+        if (result && cameraAtiva) {
+          const ean = result.getText();
+          fecharCamera();
+          document.getElementById('eanInput').value = ean;
+          buscarEAN();
+        }
+      });
+    } catch (err) {
+      alert('Não foi possível acessar a câmera. Verifique as permissões.');
+      fecharCamera();
+    }
+  }
+
+  function fecharCamera() {
+    cameraAtiva = false;
+    if (codeReader) { codeReader.reset(); codeReader = null; }
+    document.getElementById('scanInativo').style.display = 'block';
+    document.getElementById('scanAtivo').style.display = 'none';
+  }
 </script>
 </body>
 </html>
