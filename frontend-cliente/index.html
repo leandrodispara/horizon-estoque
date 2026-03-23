@@ -530,7 +530,7 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">Leitura de produto</span>
-          <button class="btn-sync" id="btnSync" onclick="sincronizar()">↻ Atualizar</button>
+          <div style="text-align:right"><button class="btn-sync" id="btnSync" onclick="sincronizar()">↻ Atualizar</button><div style="font-size:10px;color:var(--muted);margin-top:3px" id="ultimaSync">verificando...</div></div>
         </div>
 
         <div class="scan-zone" id="scanZone">
@@ -672,6 +672,7 @@
   }
 
   async function entrarNoApp() {
+    verificarUltimaSync();
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appScreen').style.display = 'block';
     await carregarAnuncios();
@@ -856,6 +857,22 @@
     document.getElementById('sec-' + id).classList.add('active');
     btn.classList.add('active');
     if (id === 'historico') renderizarHistorico();
+  }
+
+  async function verificarUltimaSync() {
+    try {
+      const res = await fetch(`${API}/sync-status`, { headers: { 'x-access-token': TOKEN } });
+      if (!res.ok) return;
+      const data = await res.json();
+      const el = document.getElementById('ultimaSync');
+      if (!el) return;
+      if (data.ultima_sync) {
+        const d = new Date(data.ultima_sync);
+        el.textContent = 'sync: ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}) + ' de ' + d.toLocaleDateString('pt-BR');
+      } else {
+        el.textContent = 'nunca sincronizado';
+      }
+    } catch {}
   }
 
   function show(id) { document.getElementById(id).style.display = 'block'; }
