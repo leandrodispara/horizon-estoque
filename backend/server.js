@@ -289,5 +289,100 @@ app.get('/admin/baixas', adminAuth, async (req, res) => {
 
 app.get('/ping', (req, res) => res.json({ ok: true, ts: Date.now() }));
 
+// ─── SINCRONIZACAO AUTOMATICA A CADA 6 HORAS ─────────────────
+
+async function sincronizarCliente(cliente) {
+  try {
+    const token = await getMLToken();
+    const meRes = await axios.get('https://api.mercadolibre.com/users/me', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const userId = meRes.data.id;
+    let offset = 0;
+    const limit = 50;
+    let total = 0;
+
+    while (true) {
+      const listRes = await axios.get(
+        `https://api.mercadolibre.com/users/${userId}/items/search?limit=${limit}&offset=${offset}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const ids = listRes.data.results;
+      if (!ids.length) break;
+
+      const chunks = [];
+      for (let i = 0; i < ids.length; i += 20) chunks.push(ids.slice(i, i + 20));
+
+      for (const chunk of chunks) {
+        const detalhes = await axios.get(
+          `https://api.mercadolibre.com/items?ids=${chunk.join(',')}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        for (const item of detalhes.data) {
+          if (item.code !== 200) continue;
+          const body = item.body;
+          const eanAttr = body.attributes?.find(a => a.id === 'EAN' || a.id === 'GTIN');
+          await supabase.from('anuncios').upsert({
+            cliente_id: cliente.id,
+            ml_item_id: body.id,
+            nome: body.title,
+            ean: eanAttr?.values?.[0]?.name || null,
+            estoque: body.available_quantity,
+            preco: body.price,
+            status: body.status,
+            atualizado_em: new Date().toISOString()
+          }, { onConflict: 'cliente_id,ml_item_id' });
+          total++;
+        }
+      }
+
+      offset += limit;
+      if (offset >= listRes.data.paging.total) break;
+    }
+
+    await supabase.from('config').upsert({
+      chave: `ultima_sync_${cliente.id}`,
+      valor: new Date().toISOString(),
+      atualizado_em: new Date().toISOString()
+    });
+
+    console.log(`[AUTO-SYNC] ${cliente.nome_loja}: ${total} anuncios sincronizados`);
+  } catch (err) {
+    console.error(`[AUTO-SYNC] Erro em ${cliente.nome_loja}:`, err.message);
+  }
+}
+
+async function sincronizacaoAutomatica() {
+  console.log('[AUTO-SYNC] Iniciando sincronizacao automatica...');
+  try {
+    const { data: clientes } = await supabase
+      .from('clientes')
+      .select('*')
+      .eq('ativo', true);
+    if (!clientes || !clientes.length) return;
+    for (const cliente of clientes) {
+      await sincronizarCliente(cliente);
+    }
+    console.log('[AUTO-SYNC] Concluida para todos os clientes.');
+  } catch (err) {
+    console.error('[AUTO-SYNC] Erro geral:', err.message);
+  }
+}
+
+// Rota para ver status da ultima sincronizacao
+app.get('/sync-status', authMiddleware, async (req, res) => {
+  const { data } = await supabase
+    .from('config')
+    .select('valor')
+    .eq('chave', `ultima_sync_${req.cliente.id}`)
+    .single();
+  res.json({ ultima_sync: data?.valor || null });
+});
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Horizon Estoque API rodando na porta ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Horizon Estoque API rodando na porta ${PORT}`);
+  // Sincroniza ao iniciar e depois a cada 6 horas
+  sincronizacaoAutomatica();
+  setInterval(sincronizacaoAutomatica, 6 * 60 * 60 * 1000);
+});
