@@ -223,19 +223,49 @@ app.post('/sincronizar', authMiddleware, async (req, res) => {
         for (const item of detalhes.data) {
           if (item.code !== 200) continue;
           const body = item.body;
-          const ean = extrairEAN(body);
-          todos.push({
-            cliente_id: req.cliente.id,
-            ml_item_id: body.id,
-            nome: body.title,
-            ean: ean,
-            estoque: body.available_quantity,
-            preco: body.price,
-            status: body.status,
-            atualizado_em: new Date().toISOString()
-          });
+          const EAN_IDS = ['EAN', 'GTIN', 'UPC', 'ISBN', 'BARCODE'];
+
+          if (body.variations && body.variations.length > 0) {
+            for (const variation of body.variations) {
+              if ((variation.available_quantity || 0) <= 0) continue;
+              let eanVar = null;
+              for (const eid of EAN_IDS) {
+                const a = (variation.attributes || []).find(x => x.id === eid)
+                       || (variation.attribute_combinations || []).find(x => x.id === eid);
+                if (a?.values?.[0]?.name) { eanVar = a.values[0].name; break; }
+              }
+              if (!eanVar) eanVar = extrairEAN(body);
+              const nomeAttr = (variation.attributes || []).concat(variation.attribute_combinations || [])
+                .find(x => ['SIZE','SHOES_SIZE','CLOTHING_SIZE','SELLER_CUSTOM_FIELD'].includes(x.id));
+              const varNome = nomeAttr?.values?.[0]?.name || `Var ${variation.id}`;
+              todos.push({
+                cliente_id: req.cliente.id,
+                ml_item_id: body.id,
+                variacao_id: String(variation.id),
+                variacao_nome: varNome,
+                nome: body.title,
+                ean: eanVar,
+                estoque: variation.available_quantity || 0,
+                preco: body.price,
+                status: body.status,
+                atualizado_em: new Date().toISOString()
+              });
+            }
+          } else {
+            todos.push({
+              cliente_id: req.cliente.id,
+              ml_item_id: body.id,
+              variacao_id: null,
+              variacao_nome: null,
+              nome: body.title,
+              ean: extrairEAN(body),
+              estoque: body.available_quantity,
+              preco: body.price,
+              status: body.status,
+              atualizado_em: new Date().toISOString()
+            });
+          }
         }
-      }
 
       offset += limit;
       if (offset >= listRes.data.paging.total) break;
@@ -244,7 +274,7 @@ app.post('/sincronizar', authMiddleware, async (req, res) => {
     for (const anuncio of todos) {
       await supabase
         .from('anuncios')
-        .upsert(anuncio, { onConflict: 'cliente_id,ml_item_id' });
+        .upsert(anuncio, { onConflict: 'cliente_id,ml_item_id,variacao_id' });
     }
 
     res.json({ ok: true, total: todos.length, mensagem: `${todos.length} anúncios sincronizados` });
@@ -350,20 +380,51 @@ async function sincronizarCliente(cliente) {
         for (const item of detalhes.data) {
           if (item.code !== 200) continue;
           const body = item.body;
-          const ean = extrairEAN(body);
-          await supabase.from('anuncios').upsert({
-            cliente_id: cliente.id,
-            ml_item_id: body.id,
-            nome: body.title,
-            ean: ean,
-            estoque: body.available_quantity,
-            preco: body.price,
-            status: body.status,
-            atualizado_em: new Date().toISOString()
-          }, { onConflict: 'cliente_id,ml_item_id' });
-          total++;
+          const EAN_IDS = ['EAN', 'GTIN', 'UPC', 'ISBN', 'BARCODE'];
+
+          if (body.variations && body.variations.length > 0) {
+            for (const variation of body.variations) {
+              if ((variation.available_quantity || 0) <= 0) continue;
+              let eanVar = null;
+              for (const eid of EAN_IDS) {
+                const a = (variation.attributes || []).find(x => x.id === eid)
+                       || (variation.attribute_combinations || []).find(x => x.id === eid);
+                if (a?.values?.[0]?.name) { eanVar = a.values[0].name; break; }
+              }
+              if (!eanVar) eanVar = extrairEAN(body);
+              const nomeAttr = (variation.attributes || []).concat(variation.attribute_combinations || [])
+                .find(x => ['SIZE','SHOES_SIZE','CLOTHING_SIZE','SELLER_CUSTOM_FIELD'].includes(x.id));
+              const varNome = nomeAttr?.values?.[0]?.name || `Var ${variation.id}`;
+              await supabase.from('anuncios').upsert({
+                cliente_id: cliente.id,
+                ml_item_id: body.id,
+                variacao_id: String(variation.id),
+                variacao_nome: varNome,
+                nome: body.title,
+                ean: eanVar,
+                estoque: variation.available_quantity || 0,
+                preco: body.price,
+                status: body.status,
+                atualizado_em: new Date().toISOString()
+              }, { onConflict: 'cliente_id,ml_item_id,variacao_id' });
+              total++;
+            }
+          } else {
+            await supabase.from('anuncios').upsert({
+              cliente_id: cliente.id,
+              ml_item_id: body.id,
+              variacao_id: null,
+              variacao_nome: null,
+              nome: body.title,
+              ean: extrairEAN(body),
+              estoque: body.available_quantity,
+              preco: body.price,
+              status: body.status,
+              atualizado_em: new Date().toISOString()
+            }, { onConflict: 'cliente_id,ml_item_id,variacao_id' });
+            total++;
+          }
         }
-      }
 
       offset += limit;
       if (offset >= listRes.data.paging.total) break;
