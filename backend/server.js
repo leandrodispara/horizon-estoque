@@ -266,6 +266,7 @@ app.post('/sincronizar', authMiddleware, async (req, res) => {
             });
           }
         }
+      }
 
       offset += limit;
       if (offset >= listRes.data.paging.total) break;
@@ -425,6 +426,7 @@ async function sincronizarCliente(cliente) {
             total++;
           }
         }
+      }
 
       offset += limit;
       if (offset >= listRes.data.paging.total) break;
