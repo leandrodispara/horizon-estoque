@@ -557,6 +557,10 @@
         <div class="produto-card" id="produtoCard">
           <div class="produto-label">Produto identificado</div>
           <div class="produto-nome" id="pcNome"></div>
+          <div id="pcVariacaoWrap" style="display:none;margin-bottom:8px">
+            <span style="font-size:11px;color:var(--muted)">Tamanho/variacao: </span>
+            <span style="font-size:13px;font-weight:500;color:var(--rose-dark)" id="pcVariacao"></span>
+          </div>
           <div class="produto-info">
             <span style="font-size:12px;color:var(--muted)">Estoque: <strong id="pcEst"></strong></span>
             <span class="estoque-badge" id="pcBadge"></span>
@@ -629,7 +633,7 @@
 </div>
 
 <script>
-  const API = 'https://horizon-estoque.onrender.com'; // ← troque pela URL do Render
+  const API = 'https://SEU-PROJETO.onrender.com'; // ← troque pela URL do Render
   let TOKEN = '';
   let CLIENTE_ID = '';
   let anuncios = [];
@@ -738,6 +742,13 @@
     if (!curProd) { show('alertNotFound'); return; }
     document.getElementById('pcNome').textContent = curProd.nome;
     document.getElementById('pcEst').textContent = curProd.estoque;
+    const varWrap = document.getElementById('pcVariacaoWrap');
+    if (curProd.variacao_nome) {
+      document.getElementById('pcVariacao').textContent = curProd.variacao_nome;
+      varWrap.style.display = 'block';
+    } else {
+      varWrap.style.display = 'none';
+    }
     document.getElementById('qtyNum').textContent = 1;
     const badge = document.getElementById('pcBadge');
     const warn = document.getElementById('alertWarn');
