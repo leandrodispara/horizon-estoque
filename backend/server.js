@@ -161,6 +161,36 @@ app.put('/baixa', authMiddleware, async (req, res) => {
   });
 });
 
+function extrairEAN(body) {
+  const EAN_IDS = ['EAN', 'GTIN', 'UPC', 'ISBN', 'BARCODE'];
+
+  if (body.attributes) {
+    for (const id of EAN_IDS) {
+      const attr = body.attributes.find(a => a.id === id);
+      if (attr?.values?.[0]?.name) return attr.values[0].name;
+    }
+  }
+
+  if (body.variations && body.variations.length > 0) {
+    for (const variation of body.variations) {
+      if (variation.attributes) {
+        for (const id of EAN_IDS) {
+          const attr = variation.attributes.find(a => a.id === id);
+          if (attr?.values?.[0]?.name) return attr.values[0].name;
+        }
+      }
+      if (variation.attribute_combinations) {
+        for (const id of EAN_IDS) {
+          const attr = variation.attribute_combinations.find(a => a.id === id);
+          if (attr?.values?.[0]?.name) return attr.values[0].name;
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
 app.post('/sincronizar', authMiddleware, async (req, res) => {
   try {
     const token = await getMLToken();
@@ -187,14 +217,13 @@ app.post('/sincronizar', authMiddleware, async (req, res) => {
 
       for (const chunk of chunks) {
         const detalhes = await axios.get(
-          `https://api.mercadolibre.com/items?ids=${chunk.join(',')}`,
+          `https://api.mercadolibre.com/items?ids=${chunk.join(',')}&include_attributes=all`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         for (const item of detalhes.data) {
           if (item.code !== 200) continue;
           const body = item.body;
-          const eanAttr = body.attributes?.find(a => a.id === 'EAN' || a.id === 'GTIN');
-          const ean = eanAttr?.values?.[0]?.name || null;
+          const ean = extrairEAN(body);
           todos.push({
             cliente_id: req.cliente.id,
             ml_item_id: body.id,
@@ -315,18 +344,18 @@ async function sincronizarCliente(cliente) {
 
       for (const chunk of chunks) {
         const detalhes = await axios.get(
-          `https://api.mercadolibre.com/items?ids=${chunk.join(',')}`,
+          `https://api.mercadolibre.com/items?ids=${chunk.join(',')}&include_attributes=all`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         for (const item of detalhes.data) {
           if (item.code !== 200) continue;
           const body = item.body;
-          const eanAttr = body.attributes?.find(a => a.id === 'EAN' || a.id === 'GTIN');
+          const ean = extrairEAN(body);
           await supabase.from('anuncios').upsert({
             cliente_id: cliente.id,
             ml_item_id: body.id,
             nome: body.title,
-            ean: eanAttr?.values?.[0]?.name || null,
+            ean: ean,
             estoque: body.available_quantity,
             preco: body.price,
             status: body.status,
