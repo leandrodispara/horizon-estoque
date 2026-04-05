@@ -1,1 +1,510 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cabanas Texas · Estoque</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --rose:#C8566A;--rose-dark:#9E3A4F;--rose-light:#F5E6EA;--rose-pale:#FDF5F7;
+      --gold:#C9A84C;--dark:#1C1118;--mid:#4A3340;--muted:#9B7F8A;
+      --border:rgba(200,86,106,0.15);--white:#FFFFFF;
+      --success-bg:#EDF7ED;--success:#2E7D32;
+      --warn-bg:#FFF8E6;--warn:#B45309;
+      --danger-bg:#FEF2F2;--danger:#C8566A;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--rose-pale);color:var(--dark);min-height:100vh}
+    #loginScreen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+    .login-card{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:40px 36px;width:100%;max-width:380px;text-align:center}
+    .brand-icon{font-size:36px;margin-bottom:8px}
+    .brand-name{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--rose-dark)}
+    .brand-sub{font-size:12px;color:var(--muted);margin-bottom:28px;margin-top:2px}
+    .field-label{display:block;font-size:11px;font-weight:500;color:var(--muted);text-align:left;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+    .field-input{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--dark);background:var(--rose-pale);outline:none;text-align:center;letter-spacing:.08em}
+    .field-input:focus{border-color:var(--rose);background:white}
+    .btn-primary{width:100%;padding:13px;background:var(--rose);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;margin-top:16px;transition:background .2s}
+    .btn-primary:hover{background:var(--rose-dark)}
+    .btn-primary:disabled{opacity:.6;cursor:default}
+    .login-error{font-size:12px;color:var(--danger);background:var(--danger-bg);border-radius:8px;padding:9px 12px;margin-top:12px;display:none}
+    .powered{font-size:11px;color:var(--muted);margin-top:28px}
+    .powered span{color:var(--rose);font-weight:500}
+    #appScreen{display:none}
+    .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:10}
+    .topbar-brand{display:flex;align-items:center;gap:8px}
+    .topbar-icon{font-size:16px}
+    .topbar-name{font-family:'Playfair Display',serif;font-size:14px;font-weight:600;color:var(--rose-dark)}
+    .topbar-status{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--success)}
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--success)}
+    .tabs-bar{background:var(--white);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;padding:0 8px}
+    .tabs-bar::-webkit-scrollbar{display:none}
+    .tab-btn{padding:12px 14px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:400;color:var(--muted);background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s;position:relative}
+    .tab-btn.active{color:var(--rose-dark);border-bottom-color:var(--rose);font-weight:500}
+    .tab-badge{position:absolute;top:8px;right:6px;background:var(--danger);color:white;font-size:9px;font-weight:500;padding:1px 5px;border-radius:10px;min-width:16px;text-align:center}
+    .content{padding:16px;max-width:640px;margin:0 auto}
+    .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+    .metric{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:13px}
+    .metric-label{font-size:11px;color:var(--muted);margin-bottom:4px}
+    .metric-value{font-size:22px;font-weight:500;line-height:1}
+    .metric-sub{font-size:11px;color:var(--muted);margin-top:3px}
+    .card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:13px}
+    .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .card-title{font-family:'Playfair Display',serif;font-size:14px;font-weight:500;color:var(--dark)}
+    .scan-zone{border:1.5px dashed var(--rose-light);border-radius:12px;background:var(--rose-pale);padding:18px;text-align:center;margin-bottom:13px}
+    .scan-hint{font-size:12px;color:var(--muted)}
+    .scan-beam-wrap{height:3px;background:var(--rose-light);border-radius:2px;margin:8px auto;width:70%;overflow:hidden}
+    .scan-beam{height:100%;background:var(--rose);border-radius:2px;animation:beam 1.4s ease-in-out infinite}
+    @keyframes beam{0%,100%{width:20%;margin-left:0}50%{width:70%;margin-left:15%}}
+    .btn-camera{padding:8px 16px;background:var(--rose);color:white;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer}
+    .ean-row{display:flex;gap:8px}
+    .ean-input{flex:1;padding:10px 13px;border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--dark);background:var(--rose-pale);outline:none}
+    .ean-input:focus{border-color:var(--rose);background:white}
+    .btn-search{padding:10px 16px;background:var(--rose);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+    .produto-card{background:var(--rose-pale);border:1px solid var(--border);border-radius:12px;padding:13px;margin-top:13px;display:none}
+    .produto-label{font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+    .produto-nome{font-family:'Playfair Display',serif;font-size:15px;color:var(--dark);margin-bottom:6px}
+    .produto-info{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+    .estoque-badge{font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px}
+    .badge-ok{background:#EAF3DE;color:#3B6D11}
+    .badge-low{background:var(--warn-bg);color:var(--warn)}
+    .badge-zero{background:var(--danger-bg);color:var(--danger)}
+    .qty-section{display:flex;align-items:center;gap:10px;margin-top:13px;padding-top:13px;border-top:1px solid var(--border)}
+    .qty-label{font-size:12px;color:var(--muted)}
+    .qty-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--rose)}
+    .qty-num{font-size:16px;font-weight:500;min-width:24px;text-align:center}
+    .btn-baixa{margin-left:auto;padding:9px 18px;background:var(--rose);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer}
+    .alert-warn{background:var(--warn-bg);border:1px solid #FDE68A;border-radius:10px;padding:9px 12px;font-size:12px;color:var(--warn);margin-top:9px;display:none}
+    .alert-minimo{background:var(--danger-bg);border:1px solid #FECACA;border-radius:10px;padding:9px 12px;font-size:12px;color:var(--danger);margin-top:9px;display:none}
+    .alert-notfound{background:var(--danger-bg);border:1px solid #FECACA;border-radius:10px;padding:9px 12px;font-size:12px;color:var(--danger);margin-top:12px;display:none}
+    .alert-pendente{background:var(--warn-bg);border:1px solid #FDE68A;border-radius:10px;padding:9px 12px;font-size:12px;color:var(--warn);margin-top:12px;display:none}
+    .success-box{background:var(--success-bg);border:1px solid #A7D7A9;border-radius:12px;padding:18px;text-align:center;margin-top:13px;display:none}
+    .success-icon{font-size:28px;margin-bottom:6px}
+    .success-title{font-family:'Playfair Display',serif;font-size:15px;color:var(--success);margin-bottom:3px}
+    .success-msg{font-size:12px;color:#4A7C4E}
+    .success-actions{display:flex;gap:8px;margin-top:12px}
+    .btn-next{flex:1;padding:9px;background:var(--rose);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer}
+    .btn-ghost{padding:9px 13px;background:white;color:var(--dark);border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer}
+    .btn-sync{padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;color:var(--rose-dark);cursor:pointer}
+    .search-bar{width:100%;padding:9px 13px;border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--dark);background:var(--rose-pale);outline:none;margin-bottom:13px}
+    .search-bar:focus{border-color:var(--rose);background:white}
+    .prod-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--rose-pale)}
+    .prod-item:last-child{border-bottom:none}
+    .prod-info{flex:1;min-width:0}
+    .prod-nome{font-size:12px;font-weight:500;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .prod-ean{font-size:10px;color:var(--muted);font-family:monospace}
+    .prod-stock{text-align:right;flex-shrink:0}
+    .stock-num{font-size:14px;font-weight:500}
+    .stock-bar{width:50px;height:4px;background:var(--rose-light);border-radius:2px;margin-top:3px}
+    .stock-fill{height:100%;border-radius:2px}
+    .hist-item{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid var(--rose-pale)}
+    .hist-item:last-child{border-bottom:none}
+    .hist-dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0;margin-top:3px}
+    .hist-nome{font-size:12px;font-weight:500;color:var(--dark)}
+    .hist-detail{font-size:11px;color:var(--muted);margin-top:1px}
+    .hist-hora{font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0}
+    .btn-estorno{padding:3px 9px;border:1px solid #FECACA;border-radius:6px;background:var(--danger-bg);font-size:10px;cursor:pointer;color:var(--danger);font-family:'DM Sans',sans-serif;white-space:nowrap}
+    .pend-item{display:flex;align-items:flex-start;gap:9px;padding:10px 0;border-bottom:1px solid var(--rose-pale)}
+    .pend-item:last-child{border-bottom:none}
+    .pend-dot{width:8px;height:8px;border-radius:50%;background:var(--warn);flex-shrink:0;margin-top:3px}
+    .pend-nome{font-size:12px;font-weight:500;color:var(--dark)}
+    .pend-detail{font-size:11px;color:var(--muted);margin-top:1px}
+    .btn-retry{padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:white;font-size:11px;cursor:pointer;color:var(--dark);font-family:'DM Sans',sans-serif;margin-right:5px}
+    .btn-del{padding:4px 10px;border:1px solid #FECACA;border-radius:6px;background:var(--danger-bg);font-size:11px;cursor:pointer;color:var(--danger);font-family:'DM Sans',sans-serif}
+    .ean-item{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--rose-pale)}
+    .ean-item:last-child{border-bottom:none}
+    .ean-code{font-size:12px;font-family:monospace;color:var(--dark);font-weight:500;flex:1}
+    .ean-count{font-size:11px;color:var(--muted)}
+    .empty-state{text-align:center;padding:24px;color:var(--muted);font-size:12px}
+    .sec{display:none}.sec.active{display:block}
+    @media(max-width:400px){.metrics{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
 
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="brand-icon">&#127867;</div>
+    <div class="brand-name">Cabanas Texas</div>
+    <div class="brand-sub">Sistema de Baixa de Estoque</div>
+    <label class="field-label">Codigo de acesso</label>
+    <input type="text" class="field-input" id="tokenInput" placeholder="CABANA-2026-P75" autocomplete="off" autocorrect="off" spellcheck="false">
+    <button class="btn-primary" id="btnLogin" onclick="fazerLogin()">Entrar</button>
+    <div class="login-error" id="loginError"></div>
+    <p class="powered">Desenvolvido por <span>Horizon Consultoria</span></p>
+  </div>
+</div>
+
+<div id="appScreen">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <span class="topbar-icon">&#127867;</span>
+      <span class="topbar-name">Cabanas Texas</span>
+    </div>
+    <div class="topbar-status"><div class="dot"></div>ML conectado</div>
+  </div>
+  <div class="tabs-bar">
+    <button class="tab-btn active" onclick="irPara('bipar',this)">Bipar</button>
+    <button class="tab-btn" onclick="irPara('estoque',this)">Estoque</button>
+    <button class="tab-btn" onclick="irPara('pendentes',this)" id="tabPendentes">Pendentes</button>
+    <button class="tab-btn" onclick="irPara('eans',this)" id="tabEans">EANs</button>
+    <button class="tab-btn" onclick="irPara('historico',this)">Historico</button>
+  </div>
+  <div class="content">
+
+    <div class="sec active" id="sec-bipar">
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">Baixas hoje</div><div class="metric-value" id="mBaixas">0</div><div class="metric-sub">nesta sessao</div></div>
+        <div class="metric"><div class="metric-label">Pendentes</div><div class="metric-value" style="color:var(--warn)" id="mPendentes">0</div><div class="metric-sub">aguardando</div></div>
+        <div class="metric"><div class="metric-label">Anuncios</div><div class="metric-value" id="mAnuncios">-</div><div class="metric-sub">sincronizados</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Leitura de produto</span>
+          <div style="text-align:right">
+            <button class="btn-sync" id="btnSync" onclick="sincronizar()">&#8635; Atualizar</button>
+            <div style="font-size:10px;color:var(--muted);margin-top:3px" id="ultimaSync">verificando...</div>
+          </div>
+        </div>
+        <div class="scan-zone">
+          <div id="scanInativo">
+            <div class="scan-beam-wrap"><div class="scan-beam"></div></div>
+            <div class="scan-hint" style="margin-bottom:9px">Leitor USB pronto ou use a camera</div>
+            <button class="btn-camera" onclick="abrirCamera()">Usar camera do celular</button>
+          </div>
+          <div id="scanAtivo" style="display:none">
+            <video id="scanVideo" style="width:100%;border-radius:8px;max-height:200px;object-fit:cover"></video>
+            <div class="scan-beam-wrap" style="margin-top:7px"><div class="scan-beam"></div></div>
+            <button class="btn-camera" style="margin-top:7px;background:var(--rose-light);color:var(--rose-dark)" onclick="fecharCamera()">Fechar camera</button>
+          </div>
+        </div>
+        <div class="ean-row">
+          <input type="text" class="ean-input" id="eanInput" placeholder="ou digite o EAN aqui..." inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter') buscarEAN()">
+          <button class="btn-search" onclick="buscarEAN()">Buscar</button>
+        </div>
+        <div class="produto-card" id="produtoCard">
+          <div class="produto-label">Produto identificado</div>
+          <div class="produto-nome" id="pcNome"></div>
+          <div id="pcVariacaoWrap" style="display:none;margin-bottom:7px">
+            <span style="font-size:11px;color:var(--muted)">Variacao: </span>
+            <span style="font-size:13px;font-weight:500;color:var(--rose-dark)" id="pcVariacao"></span>
+          </div>
+          <div class="produto-info">
+            <span style="font-size:12px;color:var(--muted)">Estoque: <strong id="pcEst"></strong></span>
+            <span class="estoque-badge" id="pcBadge"></span>
+          </div>
+          <div class="alert-warn" id="alertWarn">Estoque baixo — considere reabastecer.</div>
+          <div class="alert-minimo" id="alertMinimo">Atencao: estoque abaixo do minimo!</div>
+          <div class="qty-section">
+            <span class="qty-label">Quantidade:</span>
+            <div style="display:flex;align-items:center;gap:9px">
+              <button class="qty-btn" onclick="chQty(-1)">-</button>
+              <span class="qty-num" id="qtyNum">1</span>
+              <button class="qty-btn" onclick="chQty(1)">+</button>
+            </div>
+            <button class="btn-baixa" onclick="darBaixa()">Dar baixa</button>
+          </div>
+        </div>
+        <div class="alert-notfound" id="alertNotFound">Produto nao encontrado. EAN salvo na lista para revisao.</div>
+        <div class="alert-pendente" id="alertPendente">Falha na conexao com ML. Baixa salva na fila de pendentes.</div>
+        <div class="success-box" id="successBox">
+          <div class="success-icon">&#10003;</div>
+          <div class="success-title">Estoque atualizado!</div>
+          <div class="success-msg" id="successMsg"></div>
+          <div class="success-actions">
+            <button class="btn-next" onclick="novaBipagem()">Bipar proximo</button>
+            <button class="btn-ghost" onclick="irPara('historico',document.querySelectorAll('.tab-btn')[4])">Historico</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec" id="sec-estoque">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Meus anuncios</span><button class="btn-sync" onclick="sincronizar()">&#8635; Sync ML</button></div>
+        <input type="text" class="search-bar" placeholder="Buscar produto ou EAN..." oninput="filtrarProdutos(this.value)">
+        <div id="listaProdutos"></div>
+      </div>
+    </div>
+
+    <div class="sec" id="sec-pendentes">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Baixas pendentes</span><button class="btn-sync" onclick="carregarPendentes()">&#8635; Atualizar</button></div>
+        <div id="listaPendentes"><div class="empty-state">Carregando...</div></div>
+      </div>
+    </div>
+
+    <div class="sec" id="sec-eans">
+      <div class="card">
+        <div class="card-header"><span class="card-title">EANs nao identificados</span><button class="btn-sync" onclick="carregarEans()">&#8635; Atualizar</button></div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Codigos bipados que nao foram encontrados. Verifique o cadastro no ML.</p>
+        <div id="listaEans"><div class="empty-state">Carregando...</div></div>
+      </div>
+    </div>
+
+    <div class="sec" id="sec-historico">
+      <div class="metrics" style="grid-template-columns:1fr 1fr;margin-bottom:13px">
+        <div class="metric"><div class="metric-label">Total (7 dias)</div><div class="metric-value" id="hTotal">0</div><div class="metric-sub">baixas</div></div>
+        <div class="metric"><div class="metric-label">Ultimo item</div><div class="metric-value" style="font-size:12px;padding-top:5px" id="hUltimo">-</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Registro dos ultimos 7 dias</span><span style="font-size:11px;color:var(--muted)" id="hData"></span></div>
+        <div id="listaHistorico"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+<script>
+const API = 'https://horizon-estoque.onrender.com';
+const LOJA_TOKEN = 'CABANA-2026-P75';
+let TOKEN = '';
+let CLIENTE_ID = '';
+let ESTOQUE_MINIMO = 3;
+let anuncios = [];
+let historico = [];
+let pendentes = [];
+let qty = 1;
+let curProd = null;
+let baixasHoje = 0;
+let codeReader = null;
+let cameraAtiva = false;
+
+async function fazerLogin() {
+  const btn = document.getElementById('btnLogin');
+  const err = document.getElementById('loginError');
+  TOKEN = document.getElementById('tokenInput').value.trim();
+  if (!TOKEN) { showErr('Digite o codigo de acesso'); return; }
+  btn.disabled = true; btn.textContent = 'Verificando...'; err.style.display = 'none';
+  try {
+    const res = await fetch(`${API}/auth`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token:TOKEN}) });
+    const data = await res.json();
+    if (!res.ok) { showErr(data.error||'Erro ao entrar'); btn.disabled=false; btn.textContent='Entrar'; return; }
+    CLIENTE_ID = data.clienteId;
+    ESTOQUE_MINIMO = data.estoqueMinimo || 3;
+    localStorage.setItem('ct_token', TOKEN);
+    entrarNoApp();
+  } catch { showErr('Sem conexao com o servidor.'); btn.disabled=false; btn.textContent='Entrar'; }
+}
+
+function showErr(msg) { const el=document.getElementById('loginError'); el.textContent=msg; el.style.display='block'; }
+
+async function entrarNoApp() {
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('appScreen').style.display='block';
+  verificarUltimaSync();
+  await carregarAnuncios();
+  await carregarPendentes();
+  await carregarEans();
+  document.getElementById('hData').textContent = new Date().toLocaleDateString('pt-BR');
+}
+
+async function verificarUltimaSync() {
+  try {
+    const res = await fetch(`${API}/sync-status`, {headers:{'x-access-token':TOKEN}});
+    if (!res.ok) return;
+    const data = await res.json();
+    const el = document.getElementById('ultimaSync');
+    if (data.ultima_sync) {
+      const d = new Date(data.ultima_sync);
+      el.textContent = 'sync: '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+' de '+d.toLocaleDateString('pt-BR');
+    } else { el.textContent = 'nunca sincronizado'; }
+  } catch {}
+}
+
+async function carregarAnuncios() {
+  try {
+    const res = await fetch(`${API}/anuncios`, {headers:{'x-access-token':TOKEN}});
+    if (!res.ok) return;
+    anuncios = await res.json();
+    atualizarMetricas(); renderizarEstoque(anuncios);
+  } catch {}
+}
+
+function atualizarMetricas() {
+  document.getElementById('mAnuncios').textContent = anuncios.length;
+  document.getElementById('mBaixas').textContent = baixasHoje;
+  document.getElementById('mPendentes').textContent = pendentes.filter(p=>!p.resolvido).length;
+}
+
+async function sincronizar() {
+  const btn = document.getElementById('btnSync');
+  btn.textContent='Sincronizando...'; btn.disabled=true;
+  try {
+    const res = await fetch(`${API}/sincronizar`, {method:'POST', headers:{'x-access-token':TOKEN}});
+    const data = await res.json();
+    if (res.ok) { await carregarAnuncios(); btn.textContent=data.total+' itens'; setTimeout(()=>{btn.textContent='&#8635; Atualizar';btn.disabled=false;},2500); verificarUltimaSync(); }
+    else { btn.textContent='&#8635; Atualizar'; btn.disabled=false; }
+  } catch { btn.textContent='&#8635; Atualizar'; btn.disabled=false; }
+}
+
+async function buscarEAN() {
+  const ean = document.getElementById('eanInput').value.trim();
+  if (!ean) return;
+  hide('produtoCard'); hide('alertNotFound'); hide('successBox'); hide('alertPendente');
+  qty=1;
+  curProd = anuncios.find(a=>a.ean===ean);
+  if (!curProd) { try { const res=await fetch(`${API}/produto/${ean}`,{headers:{'x-access-token':TOKEN}}); if(res.ok) curProd=await res.json(); } catch {} }
+  if (!curProd) { show('alertNotFound'); return; }
+  document.getElementById('pcNome').textContent = curProd.nome;
+  document.getElementById('pcEst').textContent = curProd.estoque;
+  document.getElementById('qtyNum').textContent = 1;
+  const vw = document.getElementById('pcVariacaoWrap');
+  if (curProd.variacao_nome) { document.getElementById('pcVariacao').textContent=curProd.variacao_nome; vw.style.display='block'; } else { vw.style.display='none'; }
+  const badge = document.getElementById('pcBadge');
+  if (curProd.estoque===0) { badge.className='estoque-badge badge-zero'; badge.textContent='Zerado'; }
+  else if (curProd.estoque<=ESTOQUE_MINIMO) { badge.className='estoque-badge badge-low'; badge.textContent='Estoque baixo'; }
+  else { badge.className='estoque-badge badge-ok'; badge.textContent='Normal'; }
+  document.getElementById('alertWarn').style.display=(curProd.estoque>0&&curProd.estoque/20<0.2)?'block':'none';
+  document.getElementById('alertMinimo').style.display=(curProd.estoque<=ESTOQUE_MINIMO&&curProd.estoque>0)?'block':'none';
+  show('produtoCard');
+}
+
+function chQty(d) { if(!curProd)return; qty=Math.max(1,Math.min(curProd.estoque||1,qty+d)); document.getElementById('qtyNum').textContent=qty; }
+
+async function darBaixa() {
+  if (!curProd) return;
+  if (curProd.estoque===0) { alert('Estoque ja zerado!'); return; }
+  const btn = document.querySelector('.btn-baixa');
+  btn.disabled=true; btn.textContent='Aguarde...';
+  try {
+    const res = await fetch(`${API}/baixa`, {method:'PUT', headers:{'Content-Type':'application/json','x-access-token':TOKEN}, body:JSON.stringify({ean:curProd.ean,quantidade:qty})});
+    const data = await res.json();
+    if (res.status===503) { hide('produtoCard'); show('alertPendente'); await carregarPendentes(); atualizarMetricas(); }
+    else if (res.status===404&&data.tipo==='ean_desconhecido') { show('alertNotFound'); await carregarEans(); }
+    else if (!res.ok) { alert(data.error); }
+    else {
+      const idx=anuncios.findIndex(a=>a.ean===curProd.ean); if(idx>=0) anuncios[idx].estoque=data.estoque_novo;
+      baixasHoje++;
+      const now=new Date(); const hora=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+      historico.unshift({id:data.baixa_id,nome:curProd.nome,variacao:curProd.variacao_nome,qtd:qty,estoque_depois:data.estoque_novo,hora,estoque_antes:curProd.estoque,criado_em:new Date().toISOString()});
+      document.getElementById('successMsg').textContent=curProd.nome+(curProd.variacao_nome?' · '+curProd.variacao_nome:'')+' · -'+qty+' un · estoque: '+data.estoque_novo;
+      hide('produtoCard'); show('successBox'); atualizarMetricas();
+    }
+  } catch { alert('Erro de conexao. Tente novamente.'); }
+  btn.disabled=false; btn.textContent='Dar baixa';
+}
+
+function novaBipagem() { hide('successBox'); hide('produtoCard'); hide('alertNotFound'); hide('alertPendente'); document.getElementById('eanInput').value=''; curProd=null; qty=1; document.getElementById('eanInput').focus(); }
+
+function renderizarEstoque(lista) {
+  const el=document.getElementById('listaProdutos');
+  if (!lista.length) { el.innerHTML='<div class="empty-state">Nenhum anuncio. Clique em Sync ML.</div>'; return; }
+  el.innerHTML=lista.map(p=>{
+    const pct=Math.min(100,p.estoque*5); const cor=p.estoque===0?'#C8566A':p.estoque<=ESTOQUE_MINIMO?'#EF9F27':'#639922';
+    return '<div class="prod-item"><div class="prod-info"><div class="prod-nome">'+p.nome+(p.variacao_nome?' · '+p.variacao_nome:'')+'</div><div class="prod-ean">'+(p.ean||'Sem EAN')+'</div></div><div class="prod-stock"><div class="stock-num" style="color:'+(p.estoque===0?'var(--danger)':'var(--dark)')+'">'+p.estoque+'</div><div class="stock-bar"><div class="stock-fill" style="width:'+pct+'%;background:'+cor+'"></div></div></div></div>';
+  }).join('');
+}
+
+function filtrarProdutos(q) { renderizarEstoque(anuncios.filter(p=>p.nome.toLowerCase().includes(q.toLowerCase())||(p.ean&&p.ean.includes(q)))); }
+
+async function carregarPendentes() {
+  try {
+    const res=await fetch(`${API}/pendentes`,{headers:{'x-access-token':TOKEN}});
+    if(!res.ok)return; pendentes=await res.json(); renderizarPendentes(); atualizarMetricas();
+    const n=pendentes.length; const tabP=document.getElementById('tabPendentes');
+    tabP.innerHTML='Pendentes'+(n>0?'<span class="tab-badge">'+n+'</span>':'');
+  } catch {}
+}
+
+function renderizarPendentes() {
+  const el=document.getElementById('listaPendentes');
+  if (!pendentes.length) { el.innerHTML='<div class="empty-state">Nenhuma baixa pendente.</div>'; return; }
+  el.innerHTML=pendentes.map(p=>{
+    const d=new Date(p.criado_em); const hora=d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    return '<div class="pend-item"><div class="pend-dot"></div><div style="flex:1"><div class="pend-nome">'+(p.produto_nome||'Desconhecido')+(p.variacao_nome?' · '+p.variacao_nome:'')+'</div><div class="pend-detail">EAN: '+(p.ean||'-')+' · '+p.quantidade+' un · '+hora+'</div><div class="pend-detail" style="color:var(--warn)">'+p.motivo_falha+' · '+(p.tentativas||1)+' tentativa(s)</div></div><div style="display:flex;flex-direction:column;gap:4px"><button class="btn-retry" onclick="reprocessarPendente(\''+p.id+'\')">Tentar</button><button class="btn-del" onclick="deletarPendente(\''+p.id+'\')">Remover</button></div></div>';
+  }).join('');
+}
+
+async function reprocessarPendente(id) {
+  const btn=event.target; btn.disabled=true; btn.textContent='...';
+  try {
+    const res=await fetch(`${API}/pendentes/${id}/reprocessar`,{method:'POST',headers:{'x-access-token':TOKEN}});
+    const data=await res.json();
+    if(res.ok){await carregarPendentes();await carregarAnuncios();alert('Baixa processada!');}
+    else{btn.disabled=false;btn.textContent='Tentar';alert(data.error);}
+  } catch{btn.disabled=false;btn.textContent='Tentar';}
+}
+
+async function deletarPendente(id) {
+  if(!confirm('Remover da fila?'))return;
+  try{const res=await fetch(`${API}/pendentes/${id}`,{method:'DELETE',headers:{'x-access-token':TOKEN}});if(res.ok)await carregarPendentes();}catch{}
+}
+
+async function carregarEans() {
+  try {
+    const res=await fetch(`${API}/eans-desconhecidos`,{headers:{'x-access-token':TOKEN}});
+    if(!res.ok)return; const eans=await res.json();
+    const n=eans.length; const tabE=document.getElementById('tabEans');
+    tabE.innerHTML='EANs'+(n>0?'<span class="tab-badge" style="background:var(--warn)">'+n+'</span>':'');
+    const el=document.getElementById('listaEans');
+    if(!eans.length){el.innerHTML='<div class="empty-state">Nenhum EAN desconhecido.</div>';return;}
+    el.innerHTML=eans.map(e=>{const d=new Date(e.atualizado_em);return '<div class="ean-item"><div><div class="ean-code">'+e.ean+'</div><div class="ean-count">Bipado '+e.quantidade_tentativas+'x · '+d.toLocaleDateString('pt-BR')+'</div></div><button class="btn-del" onclick="deletarEan(\''+e.id+'\')">Remover</button></div>';}).join('');
+  } catch {}
+}
+
+async function deletarEan(id) { if(!confirm('Remover?'))return; try{const res=await fetch(`${API}/eans-desconhecidos/${id}`,{method:'DELETE',headers:{'x-access-token':TOKEN}});if(res.ok)await carregarEans();}catch{} }
+
+async function carregarHistorico() {
+  try {
+    const res=await fetch(`${API}/historico`,{headers:{'x-access-token':TOKEN}});
+    if(!res.ok)return; historico=await res.json(); renderizarHistorico();
+  } catch {}
+}
+
+function renderizarHistorico() {
+  document.getElementById('hTotal').textContent=historico.length;
+  document.getElementById('hUltimo').textContent=historico.length?historico[0].nome.split(' ').slice(0,2).join(' ')+'...':'-';
+  const el=document.getElementById('listaHistorico');
+  if(!historico.length){el.innerHTML='<div class="empty-state">Nenhuma baixa nos ultimos 7 dias.</div>';return;}
+  el.innerHTML=historico.slice(0,50).map(h=>{
+    const hora=h.hora||new Date(h.criado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const podeEstornar=h.id&&h.criado_em&&(Date.now()-new Date(h.criado_em).getTime())<60*60*1000;
+    return '<div class="hist-item"><div class="hist-dot"></div><div style="flex:1"><div class="hist-nome">'+h.nome+(h.variacao||h.variacao_nome?' · '+(h.variacao||h.variacao_nome):'')+'</div><div class="hist-detail">-'+(h.qtd||h.quantidade)+' un · estoque: '+h.estoque_depois+'</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><span class="hist-hora">'+hora+'</span>'+(podeEstornar?'<button class="btn-estorno" onclick="estornar(\''+h.id+'\')">Estornar</button>':'')+'</div></div>';
+  }).join('');
+}
+
+async function estornar(id) {
+  if(!confirm('Desfazer esta baixa?'))return;
+  try{const res=await fetch(`${API}/baixa/${id}`,{method:'DELETE',headers:{'x-access-token':TOKEN}});const data=await res.json();if(res.ok){await carregarHistorico();await carregarAnuncios();alert('Estorno realizado. Estoque restaurado para '+data.estoque_restaurado+'.');}else alert(data.error);}catch{alert('Erro ao estornar.');}
+}
+
+function irPara(id,btn) {
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active'); btn.classList.add('active');
+  if(id==='historico') carregarHistorico();
+  if(id==='pendentes') carregarPendentes();
+  if(id==='eans') carregarEans();
+}
+
+function show(id){document.getElementById(id).style.display='block';}
+function hide(id){document.getElementById(id).style.display='none';}
+
+async function abrirCamera() {
+  try {
+    codeReader=new ZXing.BrowserMultiFormatReader();
+    const devices=await codeReader.listVideoInputDevices();
+    if(!devices.length){alert('Nenhuma camera encontrada.');return;}
+    const deviceId=devices[devices.length-1].deviceId;
+    document.getElementById('scanInativo').style.display='none';
+    document.getElementById('scanAtivo').style.display='block';
+    cameraAtiva=true;
+    await codeReader.decodeFromVideoDevice(deviceId,'scanVideo',(result,err)=>{
+      if(result&&cameraAtiva){const ean=result.getText();fecharCamera();document.getElementById('eanInput').value=ean;buscarEAN();}
+    });
+  } catch{alert('Nao foi possivel acessar a camera.');fecharCamera();}
+}
+
+function fecharCamera(){cameraAtiva=false;if(codeReader){codeReader.reset();codeReader=null;}document.getElementById('scanInativo').style.display='block';document.getElementById('scanAtivo').style.display='none';}
+
+window.onload=function(){
+  const saved=localStorage.getItem('ct_token');
+  if(saved){document.getElementById('tokenInput').value=saved;TOKEN=saved;fazerLogin();}
+  else{document.getElementById('tokenInput').value=LOJA_TOKEN;}
+};
+</script>
+</body>
+</html>
