@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rainha dos Calcados · Estoque</title>
+  <title>Horizon · Estoque</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -19,7 +19,7 @@
     body{font-family:'DM Sans',sans-serif;background:var(--rose-pale);color:var(--dark);min-height:100vh}
     #loginScreen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
     .login-card{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:40px 36px;width:100%;max-width:380px;text-align:center}
-    .brand-crown{font-size:36px;margin-bottom:8px}
+    .brand-icon{font-size:36px;margin-bottom:8px}
     .brand-name{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--rose-dark)}
     .brand-sub{font-size:12px;color:var(--muted);margin-bottom:28px;margin-top:2px}
     .field-label{display:block;font-size:11px;font-weight:500;color:var(--muted);text-align:left;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
@@ -34,7 +34,7 @@
     #appScreen{display:none}
     .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:10}
     .topbar-brand{display:flex;align-items:center;gap:8px}
-    .topbar-crown{font-size:16px}
+    .topbar-icon{font-size:16px}
     .topbar-name{font-family:'Playfair Display',serif;font-size:14px;font-weight:600;color:var(--rose-dark)}
     .topbar-status{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--success)}
     .dot{width:7px;height:7px;border-radius:50%;background:var(--success)}
@@ -118,6 +118,7 @@
     .ean-count{font-size:11px;color:var(--muted)}
     .empty-state{text-align:center;padding:24px;color:var(--muted);font-size:12px}
     .sec{display:none}.sec.active{display:block}
+    .btn-logout{padding:5px 10px;background:transparent;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--muted);cursor:pointer}
     @media(max-width:400px){.metrics{grid-template-columns:1fr 1fr}}
   </style>
 </head>
@@ -125,11 +126,11 @@
 
 <div id="loginScreen">
   <div class="login-card">
-    <div class="brand-crown">&#128081;</div>
-    <div class="brand-name">Rainha dos Calcados</div>
+    <div class="brand-icon">&#127968;</div>
+    <div class="brand-name">Horizon Estoque</div>
     <div class="brand-sub">Sistema de Baixa de Estoque</div>
     <label class="field-label">Codigo de acesso</label>
-    <input type="text" class="field-input" id="tokenInput" placeholder="RAINHA-2025-RC1" autocomplete="off" autocorrect="off" spellcheck="false">
+    <input type="text" class="field-input" id="tokenInput" placeholder="SEU-TOKEN-AQUI" autocomplete="off" autocorrect="off" spellcheck="false">
     <button class="btn-primary" id="btnLogin" onclick="fazerLogin()">Entrar</button>
     <div class="login-error" id="loginError"></div>
     <p class="powered">Desenvolvido por <span>Horizon Consultoria</span></p>
@@ -139,10 +140,13 @@
 <div id="appScreen">
   <div class="topbar">
     <div class="topbar-brand">
-      <span class="topbar-crown">&#128081;</span>
-      <span class="topbar-name">Rainha dos Calcados</span>
+      <span class="topbar-icon" id="topbarIcon">&#127968;</span>
+      <span class="topbar-name" id="topbarNome">Carregando...</span>
     </div>
-    <div class="topbar-status"><div class="dot"></div>ML conectado</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="topbar-status"><div class="dot"></div>ML conectado</div>
+      <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+    </div>
   </div>
 
   <div class="tabs-bar">
@@ -155,26 +159,12 @@
 
   <div class="content">
 
-    <!-- BIPAR -->
     <div class="sec active" id="sec-bipar">
       <div class="metrics">
-        <div class="metric">
-          <div class="metric-label">Baixas hoje</div>
-          <div class="metric-value" id="mBaixas">0</div>
-          <div class="metric-sub">nesta sessao</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Pendentes</div>
-          <div class="metric-value" style="color:var(--warn)" id="mPendentes">0</div>
-          <div class="metric-sub">aguardando</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Anuncios</div>
-          <div class="metric-value" id="mAnuncios">-</div>
-          <div class="metric-sub">sincronizados</div>
-        </div>
+        <div class="metric"><div class="metric-label">Baixas hoje</div><div class="metric-value" id="mBaixas">0</div><div class="metric-sub">nesta sessao</div></div>
+        <div class="metric"><div class="metric-label">Pendentes</div><div class="metric-value" style="color:var(--warn)" id="mPendentes">0</div><div class="metric-sub">aguardando</div></div>
+        <div class="metric"><div class="metric-label">Anuncios</div><div class="metric-value" id="mAnuncios">-</div><div class="metric-sub">sincronizados</div></div>
       </div>
-
       <div class="card">
         <div class="card-header">
           <span class="card-title">Leitura de produto</span>
@@ -183,7 +173,6 @@
             <div style="font-size:10px;color:var(--muted);margin-top:3px" id="ultimaSync">verificando...</div>
           </div>
         </div>
-
         <div class="scan-zone">
           <div id="scanInativo">
             <div class="scan-beam-wrap"><div class="scan-beam"></div></div>
@@ -196,17 +185,15 @@
             <button class="btn-camera" style="margin-top:7px;background:var(--rose-light);color:var(--rose-dark)" onclick="fecharCamera()">Fechar camera</button>
           </div>
         </div>
-
         <div class="ean-row">
           <input type="text" class="ean-input" id="eanInput" placeholder="ou digite o EAN aqui..." inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter') buscarEAN()">
           <button class="btn-search" onclick="buscarEAN()">Buscar</button>
         </div>
-
         <div class="produto-card" id="produtoCard">
           <div class="produto-label">Produto identificado</div>
           <div class="produto-nome" id="pcNome"></div>
           <div id="pcVariacaoWrap" style="display:none;margin-bottom:7px">
-            <span style="font-size:11px;color:var(--muted)">Tamanho: </span>
+            <span style="font-size:11px;color:var(--muted)">Variacao: </span>
             <span style="font-size:13px;font-weight:500;color:var(--rose-dark)" id="pcVariacao"></span>
           </div>
           <div class="produto-info">
@@ -225,14 +212,8 @@
             <button class="btn-baixa" onclick="darBaixa()">Dar baixa</button>
           </div>
         </div>
-
-        <div class="alert-notfound" id="alertNotFound">
-          Produto nao encontrado. EAN salvo na lista para revisao.
-        </div>
-        <div class="alert-pendente" id="alertPendente">
-          Falha na conexao com ML. Baixa salva na fila de pendentes.
-        </div>
-
+        <div class="alert-notfound" id="alertNotFound">Produto nao encontrado. EAN salvo na lista para revisao.</div>
+        <div class="alert-pendente" id="alertPendente">Falha na conexao com ML. Baixa salva na fila de pendentes.</div>
         <div class="success-box" id="successBox">
           <div class="success-icon">&#10003;</div>
           <div class="success-title">Estoque atualizado!</div>
@@ -245,59 +226,36 @@
       </div>
     </div>
 
-    <!-- ESTOQUE -->
     <div class="sec" id="sec-estoque">
       <div class="card">
-        <div class="card-header">
-          <span class="card-title">Meus anuncios</span>
-          <button class="btn-sync" onclick="sincronizar()">&#8635; Sync ML</button>
-        </div>
+        <div class="card-header"><span class="card-title">Meus anuncios</span><button class="btn-sync" onclick="sincronizar()">&#8635; Sync ML</button></div>
         <input type="text" class="search-bar" placeholder="Buscar produto ou EAN..." oninput="filtrarProdutos(this.value)">
         <div id="listaProdutos"></div>
       </div>
     </div>
 
-    <!-- PENDENTES -->
     <div class="sec" id="sec-pendentes">
       <div class="card">
-        <div class="card-header">
-          <span class="card-title">Baixas pendentes</span>
-          <button class="btn-sync" onclick="carregarPendentes()">&#8635; Atualizar</button>
-        </div>
+        <div class="card-header"><span class="card-title">Baixas pendentes</span><button class="btn-sync" onclick="carregarPendentes()">&#8635; Atualizar</button></div>
         <div id="listaPendentes"><div class="empty-state">Carregando...</div></div>
       </div>
     </div>
 
-    <!-- EANS DESCONHECIDOS -->
     <div class="sec" id="sec-eans">
       <div class="card">
-        <div class="card-header">
-          <span class="card-title">EANs nao identificados</span>
-          <button class="btn-sync" onclick="carregarEans()">&#8635; Atualizar</button>
-        </div>
+        <div class="card-header"><span class="card-title">EANs nao identificados</span><button class="btn-sync" onclick="carregarEans()">&#8635; Atualizar</button></div>
         <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Codigos bipados que nao foram encontrados nos anuncios. Verifique o cadastro no ML.</p>
         <div id="listaEans"><div class="empty-state">Carregando...</div></div>
       </div>
     </div>
 
-    <!-- HISTORICO -->
     <div class="sec" id="sec-historico">
       <div class="metrics" style="grid-template-columns:1fr 1fr;margin-bottom:13px">
-        <div class="metric">
-          <div class="metric-label">Total (7 dias)</div>
-          <div class="metric-value" id="hTotal">0</div>
-          <div class="metric-sub">baixas</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Ultimo item</div>
-          <div class="metric-value" style="font-size:12px;padding-top:5px" id="hUltimo">-</div>
-        </div>
+        <div class="metric"><div class="metric-label">Total (7 dias)</div><div class="metric-value" id="hTotal">0</div><div class="metric-sub">baixas</div></div>
+        <div class="metric"><div class="metric-label">Ultimo item</div><div class="metric-value" style="font-size:12px;padding-top:5px" id="hUltimo">-</div></div>
       </div>
       <div class="card">
-        <div class="card-header">
-          <span class="card-title">Registro dos ultimos 7 dias</span>
-          <span style="font-size:11px;color:var(--muted)" id="hData"></span>
-        </div>
+        <div class="card-header"><span class="card-title">Registro dos ultimos 7 dias</span><span style="font-size:11px;color:var(--muted)" id="hData"></span></div>
         <div id="listaHistorico"></div>
       </div>
     </div>
@@ -310,6 +268,7 @@
 const API = 'https://horizon-estoque.onrender.com';
 let TOKEN = '';
 let CLIENTE_ID = '';
+let NOME_LOJA = '';
 let ESTOQUE_MINIMO = 3;
 let anuncios = [];
 let historico = [];
@@ -323,7 +282,7 @@ let cameraAtiva = false;
 async function fazerLogin() {
   const btn = document.getElementById('btnLogin');
   const err = document.getElementById('loginError');
-  TOKEN = document.getElementById('tokenInput').value.trim();
+  TOKEN = document.getElementById('tokenInput').value.trim().toUpperCase();
   if (!TOKEN) { showErr('Digite o codigo de acesso'); return; }
   btn.disabled = true; btn.textContent = 'Verificando...'; err.style.display = 'none';
   try {
@@ -335,8 +294,9 @@ async function fazerLogin() {
     const data = await res.json();
     if (!res.ok) { showErr(data.error || 'Erro ao entrar'); btn.disabled = false; btn.textContent = 'Entrar'; return; }
     CLIENTE_ID = data.clienteId;
+    NOME_LOJA = data.loja;
     ESTOQUE_MINIMO = data.estoqueMinimo || 3;
-    localStorage.setItem('rc_token', TOKEN);
+    localStorage.setItem('hz_token', TOKEN);
     entrarNoApp();
   } catch {
     showErr('Sem conexao com o servidor. Tente novamente.');
@@ -349,9 +309,24 @@ function showErr(msg) {
   el.textContent = msg; el.style.display = 'block';
 }
 
+function fazerLogout() {
+  localStorage.removeItem('hz_token');
+  TOKEN = ''; CLIENTE_ID = ''; NOME_LOJA = '';
+  anuncios = []; historico = []; pendentes = [];
+  baixasHoje = 0; curProd = null; qty = 1;
+  fecharCamera();
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('tokenInput').value = '';
+  document.getElementById('btnLogin').disabled = false;
+  document.getElementById('btnLogin').textContent = 'Entrar';
+}
+
 async function entrarNoApp() {
+  document.getElementById('topbarNome').textContent = NOME_LOJA;
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'block';
+  document.title = NOME_LOJA + ' · Estoque';
   verificarUltimaSync();
   await carregarAnuncios();
   await carregarPendentes();
@@ -426,11 +401,10 @@ async function buscarEAN() {
     varWrap.style.display = 'block';
   } else { varWrap.style.display = 'none'; }
   const badge = document.getElementById('pcBadge');
-  const ratio = curProd.estoque / 20;
   if (curProd.estoque === 0) { badge.className = 'estoque-badge badge-zero'; badge.textContent = 'Zerado'; }
   else if (curProd.estoque <= ESTOQUE_MINIMO) { badge.className = 'estoque-badge badge-low'; badge.textContent = 'Estoque baixo'; }
   else { badge.className = 'estoque-badge badge-ok'; badge.textContent = 'Normal'; }
-  document.getElementById('alertWarn').style.display = (curProd.estoque > 0 && ratio < 0.2) ? 'block' : 'none';
+  document.getElementById('alertWarn').style.display = (curProd.estoque > 0 && curProd.estoque / 20 < 0.2) ? 'block' : 'none';
   document.getElementById('alertMinimo').style.display = (curProd.estoque <= ESTOQUE_MINIMO && curProd.estoque > 0) ? 'block' : 'none';
   show('produtoCard');
 }
@@ -455,11 +429,9 @@ async function darBaixa() {
     const data = await res.json();
     if (res.status === 503) {
       hide('produtoCard'); show('alertPendente');
-      await carregarPendentes();
-      atualizarMetricas();
+      await carregarPendentes(); atualizarMetricas();
     } else if (res.status === 404 && data.tipo === 'ean_desconhecido') {
-      show('alertNotFound');
-      await carregarEans();
+      show('alertNotFound'); await carregarEans();
     } else if (!res.ok) {
       alert(data.error);
     } else {
@@ -468,11 +440,10 @@ async function darBaixa() {
       baixasHoje++;
       const now = new Date();
       const hora = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-      historico.unshift({ id: data.baixa_id, nome: curProd.nome, variacao: curProd.variacao_nome, qtd: qty, estoque_depois: data.estoque_novo, hora, estoque_antes: curProd.estoque });
+      historico.unshift({ id: data.baixa_id, nome: curProd.nome, variacao: curProd.variacao_nome, qtd: qty, estoque_depois: data.estoque_novo, hora, estoque_antes: curProd.estoque, criado_em: new Date().toISOString() });
       document.getElementById('successMsg').textContent = curProd.nome + (curProd.variacao_nome ? ' · ' + curProd.variacao_nome : '') + ' · -' + qty + ' un · estoque: ' + data.estoque_novo;
       if (data.alerta_estoque_baixo) document.getElementById('successMsg').textContent += ' (ESTOQUE BAIXO!)';
-      hide('produtoCard'); show('successBox');
-      atualizarMetricas();
+      hide('produtoCard'); show('successBox'); atualizarMetricas();
     }
   } catch { alert('Erro de conexao. Tente novamente.'); }
   btn.disabled = false; btn.textContent = 'Dar baixa';
@@ -495,8 +466,7 @@ function renderizarEstoque(lista) {
 }
 
 function filtrarProdutos(q) {
-  const f = anuncios.filter(p => p.nome.toLowerCase().includes(q.toLowerCase()) || (p.ean && p.ean.includes(q)));
-  renderizarEstoque(f);
+  renderizarEstoque(anuncios.filter(p => p.nome.toLowerCase().includes(q.toLowerCase()) || (p.ean && p.ean.includes(q))));
 }
 
 async function carregarPendentes() {
@@ -504,11 +474,9 @@ async function carregarPendentes() {
     const res = await fetch(`${API}/pendentes`, { headers: { 'x-access-token': TOKEN } });
     if (!res.ok) return;
     pendentes = await res.json();
-    renderizarPendentes();
-    atualizarMetricas();
-    const tabP = document.getElementById('tabPendentes');
+    renderizarPendentes(); atualizarMetricas();
     const n = pendentes.length;
-    tabP.innerHTML = 'Pendentes' + (n > 0 ? '<span class="tab-badge">' + n + '</span>' : '');
+    document.getElementById('tabPendentes').innerHTML = 'Pendentes' + (n > 0 ? '<span class="tab-badge">' + n + '</span>' : '');
   } catch {}
 }
 
@@ -523,8 +491,7 @@ function renderizarPendentes() {
 }
 
 async function reprocessarPendente(id) {
-  const btn = event.target;
-  btn.disabled = true; btn.textContent = '...';
+  const btn = event.target; btn.disabled = true; btn.textContent = '...';
   try {
     const res = await fetch(`${API}/pendentes/${id}/reprocessar`, { method: 'POST', headers: { 'x-access-token': TOKEN } });
     const data = await res.json();
@@ -546,13 +513,12 @@ async function carregarEans() {
     const res = await fetch(`${API}/eans-desconhecidos`, { headers: { 'x-access-token': TOKEN } });
     if (!res.ok) return;
     const eans = await res.json();
-    const tabE = document.getElementById('tabEans');
-    tabE.innerHTML = 'EANs' + (eans.length > 0 ? '<span class="tab-badge" style="background:var(--warn)">' + eans.length + '</span>' : '');
+    document.getElementById('tabEans').innerHTML = 'EANs' + (eans.length > 0 ? '<span class="tab-badge" style="background:var(--warn)">' + eans.length + '</span>' : '');
     const el = document.getElementById('listaEans');
     if (!eans.length) { el.innerHTML = '<div class="empty-state">Nenhum EAN desconhecido. Otimo!</div>'; return; }
     el.innerHTML = eans.map(e => {
       const d = new Date(e.atualizado_em);
-      return '<div class="ean-item"><div><div class="ean-code">' + e.ean + '</div><div class="ean-count">Bipado ' + e.quantidade_tentativas + 'x · ultimo: ' + d.toLocaleDateString('pt-BR') + '</div></div><button class="btn-del" onclick="deletarEan(\'' + e.id + '\')">Remover</button></div>';
+      return '<div class="ean-item"><div><div class="ean-code">' + e.ean + '</div><div class="ean-count">Bipado ' + e.quantidade_tentativas + 'x · ' + d.toLocaleDateString('pt-BR') + '</div></div><button class="btn-del" onclick="deletarEan(\'' + e.id + '\')">Remover</button></div>';
     }).join('');
   } catch {}
 }
@@ -569,8 +535,7 @@ async function carregarHistorico() {
   try {
     const res = await fetch(`${API}/historico`, { headers: { 'x-access-token': TOKEN } });
     if (!res.ok) return;
-    const data = await res.json();
-    historico = data;
+    historico = await res.json();
     renderizarHistorico();
   } catch {}
 }
@@ -583,7 +548,7 @@ function renderizarHistorico() {
   el.innerHTML = historico.slice(0,50).map(h => {
     const hora = h.hora || new Date(h.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     const podeEstornar = h.id && h.criado_em && (Date.now() - new Date(h.criado_em).getTime()) < 60 * 60 * 1000;
-    return '<div class="hist-item"><div class="hist-dot"></div><div style="flex:1"><div class="hist-nome">' + h.nome + (h.variacao || h.variacao_nome ? ' · ' + (h.variacao || h.variacao_nome) : '') + '</div><div class="hist-detail">-' + (h.qtd || h.quantidade) + ' un · estoque: ' + (h.estoque_depois) + '</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><span class="hist-hora">' + hora + '</span>' + (podeEstornar ? '<button class="btn-estorno" onclick="estornar(\'' + h.id + '\')">Estornar</button>' : '') + '</div></div>';
+    return '<div class="hist-item"><div class="hist-dot"></div><div style="flex:1"><div class="hist-nome">' + h.nome + (h.variacao || h.variacao_nome ? ' · ' + (h.variacao || h.variacao_nome) : '') + '</div><div class="hist-detail">-' + (h.qtd || h.quantidade) + ' un · estoque: ' + h.estoque_depois + '</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><span class="hist-hora">' + hora + '</span>' + (podeEstornar ? '<button class="btn-estorno" onclick="estornar(\'' + h.id + '\')">Estornar</button>' : '') + '</div></div>';
   }).join('');
 }
 
@@ -638,7 +603,7 @@ function fecharCamera() {
 }
 
 window.onload = function() {
-  const saved = localStorage.getItem('rc_token');
+  const saved = localStorage.getItem('hz_token');
   if (saved) { document.getElementById('tokenInput').value = saved; TOKEN = saved; fazerLogin(); }
 };
 </script>
