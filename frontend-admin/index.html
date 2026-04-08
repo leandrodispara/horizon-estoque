@@ -50,6 +50,8 @@
     .btn-sm:hover{background:var(--blue-pale)}
     .btn-ml{padding:5px 11px;background:var(--blue-light);color:var(--blue);border:1px solid var(--border);border-radius:7px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500}
     .btn-ml:hover{background:var(--blue);color:white}
+    .btn-reconectar{padding:5px 11px;background:var(--warn-bg);color:var(--warn);border:1px solid #FDE68A;border-radius:7px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500}
+    .btn-reconectar:hover{background:var(--warn);color:white}
     .tgl{position:relative;width:38px;height:22px;flex-shrink:0}
     .tgl input{opacity:0;width:100%;height:100%;position:absolute;cursor:pointer;margin:0;z-index:1}
     .tgl-t{position:absolute;inset:0;background:#D1D5DB;border-radius:11px;transition:background .2s;pointer-events:none}
@@ -203,6 +205,7 @@
             <p>3. Envie o link gerado para o cliente autorizar.</p>
             <p>4. Envie tambem o link do sistema e o codigo de acesso.</p>
             <p>5. Para bloquear, desative o toggle do cliente.</p>
+            <p>6. Para trocar a conta ML, clique em <strong style="color:var(--dark)">Reconectar ML</strong>.</p>
           </div>
         </div>
       </div>
@@ -213,7 +216,7 @@
 
 <div class="modal-wrap" id="modalML">
   <div class="modal-box">
-    <div class="modal-title">Link de autorizacao ML</div>
+    <div class="modal-title" id="modalTitulo">Link de autorizacao ML</div>
     <p style="font-size:13px;color:var(--muted);margin-bottom:4px">Envie este link para <strong id="modalLoja" style="color:var(--dark)"></strong> clicar e autorizar o acesso ao Mercado Livre:</p>
     <div class="modal-link" id="modalLink"></div>
     <div style="display:flex;gap:8px;justify-content:center">
@@ -308,7 +311,9 @@ function renderClientes() {
     const ini = c.nome_loja.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
     const d = vencendoEm(c.data_vencimento);
     const vInfo = c.data_vencimento ? (d < 0 ? '<span class="badge br" style="font-size:10px">Vencido</span>' : d <= 7 ? `<span class="badge ba" style="font-size:10px">Vence ${d}d</span>` : '') : '';
-    const mlBtn = c.ml_autorizado ? '<span class="badge bg" style="font-size:10px">ML conectado</span>' : `<button class="btn-ml" onclick="conectarML('${c.id}','${c.nome_loja}')">Conectar ML</button>`;
+    const mlBtn = c.ml_autorizado
+      ? `<span class="badge bg" style="font-size:10px">ML conectado</span><button class="btn-reconectar" onclick="conectarML('${c.id}','${c.nome_loja}',true)">Reconectar ML</button>`
+      : `<button class="btn-ml" onclick="conectarML('${c.id}','${c.nome_loja}',false)">Conectar ML</button>`;
     return `<div class="cliente-row">
       <div class="avatar">${ini}</div>
       <div style="flex:1;min-width:0">
@@ -374,11 +379,12 @@ async function renovar(id) {
   try { const res=await fetch(`${API}/admin/clientes/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','x-admin-key':ADMIN_KEY},body:JSON.stringify({data_vencimento:novaData,ativo:true})}); if(res.ok){await carregarResumo();alert('Vencimento atualizado!');} } catch {}
 }
 
-async function conectarML(id, nome) {
+async function conectarML(id, nome, reconectar) {
   try {
     const res = await fetch(`${API}/admin/link-ml/${id}`, { headers: { 'x-admin-key': ADMIN_KEY } });
     const data = await res.json();
     if (res.ok) {
+      document.getElementById('modalTitulo').textContent = reconectar ? 'Reconectar ML — ' + nome : 'Conectar ML — ' + nome;
       document.getElementById('modalLoja').textContent = nome;
       document.getElementById('modalLink').textContent = data.link;
       document.getElementById('modalML').classList.add('open');
