@@ -255,7 +255,10 @@ app.post('/sincronizar', authMiddleware, async (req, res) => {
       offset += limit;
       if (offset >= listRes.data.paging.total) break;
     }
-    for (const anuncio of todos) await supabase.from('anuncios').upsert(anuncio, { onConflict: 'cliente_id,ml_item_id,variacao_id' });
+    if (todos.length > 0) {
+      await supabase.from('anuncios').delete().eq('cliente_id', req.cliente.id);
+      await supabase.from('anuncios').insert(todos);
+    }
     await supabase.from('config').upsert({ chave: `ultima_sync_${req.cliente.id}`, valor: new Date().toISOString(), atualizado_em: new Date().toISOString() });
     res.json({ ok: true, total: todos.length, mensagem: `${todos.length} anuncios sincronizados` });
   } catch (err) {
@@ -328,7 +331,7 @@ async function sincronizarCliente(cliente) {
     const mlToken = await getMLTokenCliente(cliente);
     const meRes = await axios.get('https://api.mercadolibre.com/users/me', { headers: { Authorization: `Bearer ${mlToken}` } });
     const userId = meRes.data.id;
-    let offset = 0; const limit = 50; let total = 0;
+    let offset = 0; const limit = 50; const todos = [];
     while (true) {
       const listRes = await axios.get(`https://api.mercadolibre.com/users/${userId}/items/search?limit=${limit}&offset=${offset}`, { headers: { Authorization: `Bearer ${mlToken}` } });
       const ids = listRes.data.results;
@@ -351,20 +354,22 @@ async function sincronizarCliente(cliente) {
               }
               if (!eanVar) eanVar = extrairEAN(body);
               const nomeAttr = (variation.attributes || []).concat(variation.attribute_combinations || []).find(x => ['SIZE','SHOES_SIZE','CLOTHING_SIZE','SELLER_CUSTOM_FIELD'].includes(x.id));
-              await supabase.from('anuncios').upsert({ cliente_id: cliente.id, ml_item_id: body.id, variacao_id: String(variation.id), variacao_nome: nomeAttr?.values?.[0]?.name || `Var ${variation.id}`, nome: body.title, ean: eanVar, estoque: variation.available_quantity || 0, preco: body.price, status: body.status, atualizado_em: new Date().toISOString() }, { onConflict: 'cliente_id,ml_item_id,variacao_id' });
-              total++;
+              todos.push({ cliente_id: cliente.id, ml_item_id: body.id, variacao_id: String(variation.id), variacao_nome: nomeAttr?.values?.[0]?.name || `Var ${variation.id}`, nome: body.title, ean: eanVar, estoque: variation.available_quantity || 0, preco: body.price, status: body.status, atualizado_em: new Date().toISOString() });
             }
           } else {
-            await supabase.from('anuncios').upsert({ cliente_id: cliente.id, ml_item_id: body.id, variacao_id: null, variacao_nome: null, nome: body.title, ean: extrairEAN(body), estoque: body.available_quantity, preco: body.price, status: body.status, atualizado_em: new Date().toISOString() }, { onConflict: 'cliente_id,ml_item_id,variacao_id' });
-            total++;
+            todos.push({ cliente_id: cliente.id, ml_item_id: body.id, variacao_id: null, variacao_nome: null, nome: body.title, ean: extrairEAN(body), estoque: body.available_quantity, preco: body.price, status: body.status, atualizado_em: new Date().toISOString() });
           }
         }
       }
       offset += limit;
       if (offset >= listRes.data.paging.total) break;
     }
+    if (todos.length > 0) {
+      await supabase.from('anuncios').delete().eq('cliente_id', cliente.id);
+      await supabase.from('anuncios').insert(todos);
+    }
     await supabase.from('config').upsert({ chave: `ultima_sync_${cliente.id}`, valor: new Date().toISOString(), atualizado_em: new Date().toISOString() });
-    console.log(`[AUTO-SYNC] ${cliente.nome_loja}: ${total} anuncios`);
+    console.log(`[AUTO-SYNC] ${cliente.nome_loja}: ${todos.length} anuncios`);
   } catch (err) { console.error(`[AUTO-SYNC] Erro em ${cliente.nome_loja}:`, err.message); }
 }
 
