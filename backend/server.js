@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const nodemailer = require('nodemailer');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
@@ -11,6 +12,22 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 const ML_CLIENT_ID = process.env.ML_CLIENT_ID;
 const ML_CLIENT_SECRET = process.env.ML_CLIENT_SECRET;
 const ML_REDIRECT_URI = 'https://horizon-estoque.onrender.com/auth/ml/callback';
+
+const mailer = nodemailer.createTransport({
+  service: 'gmail',
+  auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS }
+});
+
+async function enviarEmailAdmin(assunto, html) {
+  try {
+    await mailer.sendMail({
+      from: `"Horizon Estoque" <${process.env.GMAIL_USER}>`,
+      to: process.env.GMAIL_USER,
+      subject: assunto,
+      html
+    });
+  } catch (err) { console.error('EMAIL ERROR:', err.message); }
+}
 
 async function getMLTokenCliente(cliente) {
   if (!cliente.ml_refresh_token) throw new Error('Cliente nao autorizou o ML ainda.');
@@ -95,6 +112,23 @@ app.get('/auth/ml/callback', async (req, res) => {
       ml_autorizado: true,
       ml_autorizado_em: new Date().toISOString()
     }).eq('id', clienteId);
+
+    const agora = new Date().toLocaleString('pt-BR');
+    enviarEmailAdmin(
+      `[Horizon] ${cliente.nome_loja} autorizou o ML`,
+      `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+        <h2 style="color:#1A3C6E">Nova autorizacao ML</h2>
+        <p>A loja <strong>${cliente.nome_loja}</strong> autorizou o acesso ao Mercado Livre.</p>
+        <table style="width:100%;margin-top:16px;font-size:13px;border-collapse:collapse">
+          <tr><td style="padding:6px 0;color:#7A8EA8">Loja</td><td><strong>${cliente.nome_loja}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#7A8EA8">Token</td><td><code>${cliente.token}</code></td></tr>
+          <tr><td style="padding:6px 0;color:#7A8EA8">ML User ID</td><td>${tokenRes.data.user_id}</td></tr>
+          <tr><td style="padding:6px 0;color:#7A8EA8">Data/hora</td><td>${agora}</td></tr>
+        </table>
+        <p style="margin-top:20px;font-size:12px;color:#7A8EA8">Acesse o painel admin para sincronizar os anuncios.</p>
+      </div>`
+    );
+
     return res.send(`<html><head><meta charset="UTF-8"><style>body{font-family:sans-serif;background:#FDF5F7;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}.box{background:white;border-radius:16px;padding:40px;text-align:center;max-width:400px}h2{color:#9E3A4F}</style></head><body><div class="box"><div style="font-size:48px">&#10003;</div><h2>Autorizado com sucesso!</h2><p>A loja <strong>${cliente.nome_loja}</strong> foi conectada ao Mercado Livre.</p><p style="margin-top:16px;color:#9B7F8A">Voce ja pode fechar esta janela.</p></div></body></html>`);
   } catch (err) {
     console.error('OAUTH ERROR:', err.response?.data);
@@ -222,7 +256,7 @@ app.post('/sincronizar', authMiddleware, async (req, res) => {
     const mlToken = await getMLTokenCliente(req.cliente);
     const meRes = await axios.get('https://api.mercadolibre.com/users/me', { headers: { Authorization: `Bearer ${mlToken}` } });
     const userId = meRes.data.id;
-    let offset = 0; const limit = 50; let todos = [];
+    let offset = 0; const limit = 50; const todos = [];
     while (true) {
       const listRes = await axios.get(`https://api.mercadolibre.com/users/${userId}/items/search?limit=${limit}&offset=${offset}`, { headers: { Authorization: `Bearer ${mlToken}` } });
       const ids = listRes.data.results;
