@@ -268,6 +268,7 @@ app.put('/baixa', authMiddleware, async (req, res) => {
       { headers: { Authorization: `Bearer ${mlToken}` } }
     );
   } catch (err) {
+    console.error('[BAIXA ERROR] msg:', err.message, '| ML response:', JSON.stringify(err.response?.data), '| status:', err.response?.status, '| item:', produto.ml_item_id);
     await supabase.from('pendentes').insert({
       cliente_id:    req.cliente.id,
       ean:           produto.ean,
