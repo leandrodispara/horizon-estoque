@@ -476,6 +476,7 @@ app.post('/sincronizar', authMiddleware, async (req, res) => {
             const body = item.body;
             const EAN_IDS = ['EAN', 'GTIN', 'UPC', 'ISBN', 'BARCODE'];
 
+            if (body.status !== 'active') continue;
             if (req.cliente.usa_variacoes && body.variations && body.variations.length > 0) {
               for (const variation of body.variations) {
                 if ((variation.available_quantity || 0) <= 0) continue;
@@ -682,6 +683,7 @@ async function sincronizarCliente(cliente) {
             const body = item.body;
             const EAN_IDS = ['EAN', 'GTIN', 'UPC', 'ISBN', 'BARCODE'];
 
+            if (body.status !== 'active') continue;
             if (cliente.usa_variacoes && body.variations && body.variations.length > 0) {
               for (const variation of body.variations) {
                 if ((variation.available_quantity || 0) <= 0) continue;
