@@ -262,11 +262,30 @@ app.put('/baixa', authMiddleware, async (req, res) => {
 
   try {
     const mlToken = await getMLTokenConta(conta);
-    await axios.put(
-      `https://api.mercadolibre.com/items/${produto.ml_item_id}`,
-      { available_quantity: novoEstoque },
-      { headers: { Authorization: `Bearer ${mlToken}` } }
-    );
+
+    // Tenta atualizar pelo item principal
+    try {
+      await axios.put(
+        `https://api.mercadolibre.com/items/${produto.ml_item_id}`,
+        { available_quantity: novoEstoque },
+        { headers: { Authorization: `Bearer ${mlToken}` } }
+      );
+    } catch (errItem) {
+      const mlErr = errItem.response?.data;
+      const isNotModifiable = JSON.stringify(mlErr).includes('not modifiable') || JSON.stringify(mlErr).includes('field_not_updatable');
+
+      // Se bloqueado por promocao e tem variacao, tenta via endpoint de variacao
+      if (isNotModifiable && produto.variacao_id) {
+        console.log('[BAIXA] Item bloqueado, tentando via variacao:', produto.variacao_id);
+        await axios.put(
+          `https://api.mercadolibre.com/items/${produto.ml_item_id}/variations/${produto.variacao_id}`,
+          { available_quantity: novoEstoque },
+          { headers: { Authorization: `Bearer ${mlToken}` } }
+        );
+      } else {
+        throw errItem;
+      }
+    }
   } catch (err) {
     console.error('[BAIXA ERROR] msg:', err.message, '| ML response:', JSON.stringify(err.response?.data), '| status:', err.response?.status, '| item:', produto.ml_item_id);
     await supabase.from('pendentes').insert({
