@@ -50,6 +50,8 @@
     .btn-sm:hover{background:var(--blue-pale)}
     .btn-ml{padding:5px 11px;background:var(--blue-light);color:var(--blue);border:1px solid var(--border);border-radius:7px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500}
     .btn-ml:hover{background:var(--blue);color:white}
+    .btn-ml-add{padding:5px 11px;background:#EAF3DE;color:#3B6D11;border:1px solid #C3E6A3;border-radius:7px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500}
+    .btn-ml-add:hover{background:#3B6D11;color:white}
     .btn-reconectar{padding:5px 11px;background:var(--warn-bg);color:var(--warn);border:1px solid #FDE68A;border-radius:7px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500}
     .btn-reconectar:hover{background:var(--warn);color:white}
     .tgl{position:relative;width:38px;height:22px;flex-shrink:0}
@@ -72,9 +74,14 @@
     .gen-wrap .form-input{flex:1}
     .btn-gen{padding:9px 12px;background:var(--blue-light);color:var(--blue);border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap}
     .btn-gen:hover{background:var(--blue);color:white}
-    .cliente-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:0.5px solid var(--border);flex-wrap:wrap}
+    .cliente-row{display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:0.5px solid var(--border);flex-wrap:wrap}
     .cliente-row:last-child{border-bottom:none}
-    .avatar{width:38px;height:38px;border-radius:9px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--blue);flex-shrink:0}
+    .avatar{width:38px;height:38px;border-radius:9px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--blue);flex-shrink:0;margin-top:2px}
+    .contas-ml-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+    .conta-chip{display:inline-flex;align-items:center;gap:5px;background:var(--blue-light);border:1px solid var(--border);border-radius:20px;padding:2px 9px;font-size:11px;color:var(--blue)}
+    .conta-chip-remove{background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;line-height:1;padding:0 0 0 2px}
+    .conta-chip-remove:hover{color:var(--danger)}
+    .slots-info{font-size:11px;color:var(--muted);margin-top:5px}
     .venc-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:0.5px solid var(--border);flex-wrap:wrap;gap:8px}
     .venc-row:last-child{border-bottom:none}
     .prog-wrap{width:70px;height:5px;background:var(--blue-pale);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle}
@@ -89,6 +96,10 @@
     .modal-box{background:var(--white);border-radius:14px;padding:28px;max-width:480px;width:90%;text-align:center}
     .modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:600;color:var(--dark);margin-bottom:8px}
     .modal-link{background:var(--blue-pale);border:1px solid var(--border);border-radius:8px;padding:10px;font-family:monospace;font-size:11px;color:var(--blue);word-break:break-all;margin:12px 0;text-align:left;line-height:1.5}
+    .slots-bar{display:flex;gap:4px;margin:10px 0}
+    .slot{width:32px;height:8px;border-radius:4px}
+    .slot-used{background:var(--blue)}
+    .slot-free{background:var(--blue-light);border:1px solid var(--border)}
     @media(max-width:600px){.metrics{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.content{padding:16px}}
   </style>
 </head>
@@ -162,7 +173,7 @@
         <div class="ch"><span class="ct">Operacoes por cliente</span><button class="btn-ghost" onclick="carregarResumo()">Atualizar</button></div>
         <div style="overflow-x:auto">
           <table>
-            <thead><tr><th>Loja</th><th>Baixas/mes</th><th>Falhas</th><th>EANs nao ID</th><th>ML</th><th>Taxa sucesso</th></tr></thead>
+            <thead><tr><th>Loja</th><th>Baixas/mes</th><th>Falhas</th><th>EANs nao ID</th><th>Contas ML</th><th>Taxa sucesso</th></tr></thead>
             <tbody id="tOperacoes"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:16px">Carregando...</td></tr></tbody>
           </table>
         </div>
@@ -171,8 +182,8 @@
         <div class="ch"><span class="ct">Ultimas baixas</span><button class="btn-ghost" onclick="carregarBaixas()">Atualizar</button></div>
         <div style="overflow-x:auto">
           <table>
-            <thead><tr><th>Produto</th><th>Loja</th><th>Qtd</th><th>Estoque apos</th><th>Horario</th></tr></thead>
-            <tbody id="tBaixas"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:16px">Carregando...</td></tr></tbody>
+            <thead><tr><th>Produto</th><th>Loja</th><th>Conta ML</th><th>Qtd</th><th>Estoque apos</th><th>Horario</th></tr></thead>
+            <tbody id="tBaixas"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:16px">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -201,11 +212,11 @@
           <div class="ch"><span class="ct">Como funciona o acesso</span></div>
           <div style="font-size:13px;color:var(--muted);line-height:1.9">
             <p>1. Gere ou defina um codigo para o cliente.</p>
-            <p>2. Apos salvar, clique em <strong style="color:var(--dark)">Conectar ML</strong> na lista.</p>
-            <p>3. Envie o link gerado para o cliente autorizar.</p>
-            <p>4. Envie tambem o link do sistema e o codigo de acesso.</p>
-            <p>5. Para bloquear, desative o toggle do cliente.</p>
-            <p>6. Para trocar a conta ML, clique em <strong style="color:var(--dark)">Reconectar ML</strong>.</p>
+            <p>2. Apos salvar, clique em <strong style="color:var(--dark)">+ Add Conta ML</strong> na lista.</p>
+            <p>3. Copie o link gerado e envie para o cliente autorizar.</p>
+            <p>4. Repita para cada conta adicional (ate 5 por cliente).</p>
+            <p>5. Envie o link do sistema e o codigo de acesso.</p>
+            <p>6. Para bloquear, desative o toggle do cliente.</p>
           </div>
         </div>
       </div>
@@ -214,16 +225,28 @@
   </div>
 </div>
 
+<!-- Modal link ML -->
 <div class="modal-wrap" id="modalML">
   <div class="modal-box">
     <div class="modal-title" id="modalTitulo">Link de autorizacao ML</div>
     <p style="font-size:13px;color:var(--muted);margin-bottom:4px">Envie este link para <strong id="modalLoja" style="color:var(--dark)"></strong> clicar e autorizar o acesso ao Mercado Livre:</p>
     <div class="modal-link" id="modalLink"></div>
-    <div style="display:flex;gap:8px;justify-content:center">
+    <div class="slots-bar" id="slotsBar"></div>
+    <p style="font-size:11px;color:var(--muted)" id="slotsTexto"></p>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:14px">
       <button class="btn-blue" onclick="copiarLink()">Copiar link</button>
       <button class="btn-ghost" onclick="fecharModal()">Fechar</button>
     </div>
     <div id="copiadoMsg" style="font-size:12px;color:var(--success);margin-top:8px;display:none">Link copiado!</div>
+  </div>
+</div>
+
+<!-- Modal contas ML do cliente -->
+<div class="modal-wrap" id="modalContas">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-title" id="modalContasTitulo">Contas ML vinculadas</div>
+    <div id="modalContasLista" style="margin:14px 0;text-align:left"></div>
+    <button class="btn-ghost" onclick="fecharModalContas()">Fechar</button>
   </div>
 </div>
 
@@ -232,6 +255,7 @@ const API = 'https://horizon-estoque.onrender.com';
 let ADMIN_KEY = '';
 let clientes = [];
 let resumo = [];
+let contasCache = {}; // clienteId -> array de contas
 
 async function login() {
   ADMIN_KEY = document.getElementById('adminKey').value.trim();
@@ -261,13 +285,30 @@ async function carregarResumo() {
   } catch {}
 }
 
+async function carregarContasCliente(clienteId) {
+  try {
+    const res = await fetch(`${API}/admin/clientes/${clienteId}/contas-ml`, { headers: { 'x-admin-key': ADMIN_KEY } });
+    if (!res.ok) return [];
+    const contas = await res.json();
+    contasCache[clienteId] = contas;
+    return contas;
+  } catch { return []; }
+}
+
 async function carregarBaixas() {
   try {
     const res = await fetch(`${API}/admin/baixas`, { headers: { 'x-admin-key': ADMIN_KEY } });
     const baixas = await res.json();
     const tb = document.getElementById('tBaixas');
-    if (!baixas.length) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:16px">Nenhuma baixa.</td></tr>'; return; }
-    tb.innerHTML = baixas.slice(0,50).map(b => `<tr><td style="font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.produto_nome}</td><td style="color:var(--muted)">${b.clientes?.nome_loja||'-'}</td><td><span class="badge br">-${b.quantidade}</span></td><td style="font-weight:500">${b.estoque_depois}</td><td style="color:var(--muted);font-size:11px">${new Date(b.criado_em).toLocaleString('pt-BR')}</td></tr>`).join('');
+    if (!baixas.length) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:16px">Nenhuma baixa.</td></tr>'; return; }
+    tb.innerHTML = baixas.slice(0,50).map(b => `<tr>
+      <td style="font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.produto_nome}</td>
+      <td style="color:var(--muted)">${b.clientes?.nome_loja||'-'}</td>
+      <td><span class="badge bb" style="font-size:10px">${b.ml_nickname||'-'}</span></td>
+      <td><span class="badge br">-${b.quantidade}</span></td>
+      <td style="font-weight:500">${b.estoque_depois}</td>
+      <td style="color:var(--muted);font-size:11px">${new Date(b.criado_em).toLocaleString('pt-BR')}</td>
+    </tr>`).join('');
   } catch {}
 }
 
@@ -300,28 +341,57 @@ function renderVisaoGeral() {
   }).join('');
 
   document.getElementById('resumoClientes').innerHTML = resumo.map(c =>
-    `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--blue-pale)"><div style="font-size:12px;font-weight:500">${c.nome_loja}</div><div style="display:flex;gap:5px;align-items:center"><span class="badge bb">${c.baixas_mes||0}</span>${(c.falhas_pendentes||0)>0?`<span class="badge br">${c.falhas_pendentes}f</span>`:''}${!c.ml_autorizado?'<span class="badge ba">Sem ML</span>':'<span class="badge bg">ML ok</span>'}</div></div>`
+    `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--blue-pale)">
+      <div style="font-size:12px;font-weight:500">${c.nome_loja}</div>
+      <div style="display:flex;gap:5px;align-items:center">
+        <span class="badge bb">${c.baixas_mes||0}</span>
+        ${(c.falhas_pendentes||0)>0?`<span class="badge br">${c.falhas_pendentes}f</span>`:''}
+        <span class="badge ${(c.contas_ml||0)>0?'bg':'ba'}">${c.contas_ml||0} ML</span>
+      </div>
+    </div>`
   ).join('');
 }
 
-function renderClientes() {
+async function renderClientes() {
   const el = document.getElementById('listaClientes');
   if (!clientes.length) { el.innerHTML = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:20px">Nenhum cliente.</div>'; return; }
+
+  // Carregar contas de todos os clientes em paralelo
+  await Promise.all(clientes.map(c => carregarContasCliente(c.id)));
+
   el.innerHTML = clientes.map(c => {
     const ini = c.nome_loja.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
     const d = vencendoEm(c.data_vencimento);
     const vInfo = c.data_vencimento ? (d < 0 ? '<span class="badge br" style="font-size:10px">Vencido</span>' : d <= 7 ? `<span class="badge ba" style="font-size:10px">Vence ${d}d</span>` : '') : '';
-    const mlBtn = c.ml_autorizado
-      ? `<span class="badge bg" style="font-size:10px">ML conectado</span><button class="btn-reconectar" onclick="conectarML('${c.id}','${c.nome_loja}',true)">Reconectar ML</button>`
-      : `<button class="btn-ml" onclick="conectarML('${c.id}','${c.nome_loja}',false)">Conectar ML</button>`;
+    const contas = contasCache[c.id] || [];
+    const slots = contas.length;
+
+    // Chips das contas conectadas
+    const chipsHtml = contas.length > 0
+      ? contas.map(ct => `<span class="conta-chip">&#10003; ${ct.nickname}<button class="conta-chip-remove" title="Desativar conta" onclick="desativarConta('${ct.id}','${ct.nickname}','${c.id}')">&#x2715;</button></span>`).join('')
+      : '<span style="font-size:11px;color:var(--muted)">Nenhuma conta conectada</span>';
+
+    const slotsBar = Array.from({length:5}, (_,i) =>
+      `<div class="slot ${i < slots ? 'slot-used' : 'slot-free'}"></div>`
+    ).join('');
+
+    const btnAdd = slots < 5
+      ? `<button class="btn-ml-add" onclick="adicionarContaML('${c.id}','${c.nome_loja}',${slots})">+ Add Conta ML</button>`
+      : `<span class="badge bgr" style="font-size:10px">5/5 slots</span>`;
+
     return `<div class="cliente-row">
       <div class="avatar">${ini}</div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:500;font-size:13px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">${c.nome_loja} ${vInfo}</div>
-        <div style="font-size:11px;color:var(--muted);font-family:monospace">${c.token} · ${c.dispositivos_max||2} disp · ${c.data_vencimento?'vence '+new Date(c.data_vencimento).toLocaleDateString('pt-BR'):'sem vencimento'}</div>
+        <div style="font-size:11px;color:var(--muted);font-family:monospace;margin-top:2px">${c.token} · ${c.dispositivos_max||2} disp · ${c.data_vencimento?'vence '+new Date(c.data_vencimento).toLocaleDateString('pt-BR'):'sem vencimento'}</div>
+        <div class="contas-ml-chips" id="chips-${c.id}">${chipsHtml}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:5px">
+          <div class="slots-bar" style="margin:0">${slotsBar}</div>
+          <span class="slots-info">${slots}/5 contas ML</span>
+        </div>
       </div>
-      <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
-        ${mlBtn}
+      <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:2px">
+        ${btnAdd}
         <span class="badge ${c.ativo?'bg':'br'}" id="badge-${c.id}">${c.ativo?'Ativo':'Bloqueado'}</span>
         <label class="tgl"><input type="checkbox" ${c.ativo?'checked':''} onchange="toggleCliente('${c.id}',this.checked)"><div class="tgl-t"></div><div class="tgl-th"></div></label>
         <button class="btn-danger" onclick="excluirCliente('${c.id}','${c.nome_loja}')">Excluir</button>
@@ -356,7 +426,15 @@ function renderOperacoes() {
     const total = c.baixas_mes||0, falhas = c.falhas_pendentes||0;
     const taxa = total>0?Math.round((total/(total+falhas))*100):100;
     const cor = taxa>=99?'#639922':taxa>=95?'#EF9F27':'#E24B4A';
-    return `<tr><td style="font-weight:500">${c.nome_loja}</td><td>${total}</td><td>${falhas>0?`<span class="badge br">${falhas}</span>`:'<span class="badge bgr">0</span>'}</td><td>${(c.eans_desconhecidos||0)>0?`<span class="badge ba">${c.eans_desconhecidos}</span>`:'<span class="badge bgr">0</span>'}</td><td>${c.ml_autorizado?'<span class="badge bg">Conectado</span>':'<span class="badge ba">Pendente</span>'}</td><td><div style="display:flex;align-items:center;gap:6px"><div class="prog-wrap"><div class="prog-fill" style="width:${taxa}%;background:${cor}"></div></div><span style="font-size:11px;font-weight:500">${taxa}%</span></div></td></tr>`;
+    const nContas = c.contas_ml || 0;
+    return `<tr>
+      <td style="font-weight:500">${c.nome_loja}</td>
+      <td>${total}</td>
+      <td>${falhas>0?`<span class="badge br">${falhas}</span>`:'<span class="badge bgr">0</span>'}</td>
+      <td>${(c.eans_desconhecidos||0)>0?`<span class="badge ba">${c.eans_desconhecidos}</span>`:'<span class="badge bgr">0</span>'}</td>
+      <td><span class="badge ${nContas>0?'bg':'ba'}">${nContas}/5</span></td>
+      <td><div style="display:flex;align-items:center;gap:6px"><div class="prog-wrap"><div class="prog-fill" style="width:${taxa}%;background:${cor}"></div></div><span style="font-size:11px;font-weight:500">${taxa}%</span></div></td>
+    </tr>`;
   }).join('');
   carregarBaixas();
 }
@@ -379,21 +457,43 @@ async function renovar(id) {
   try { const res=await fetch(`${API}/admin/clientes/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','x-admin-key':ADMIN_KEY},body:JSON.stringify({data_vencimento:novaData,ativo:true})}); if(res.ok){await carregarResumo();alert('Vencimento atualizado!');} } catch {}
 }
 
-async function conectarML(id, nome, reconectar) {
+// Adicionar nova conta ML (gera link OAuth)
+async function adicionarContaML(id, nome, slotsUsados) {
   try {
     const res = await fetch(`${API}/admin/link-ml/${id}`, { headers: { 'x-admin-key': ADMIN_KEY } });
     const data = await res.json();
-    if (res.ok) {
-      document.getElementById('modalTitulo').textContent = reconectar ? 'Reconectar ML — ' + nome : 'Conectar ML — ' + nome;
-      document.getElementById('modalLoja').textContent = nome;
-      document.getElementById('modalLink').textContent = data.link;
-      document.getElementById('modalML').classList.add('open');
-      document.getElementById('copiadoMsg').style.display = 'none';
-    }
+    if (!res.ok) { alert(data.error || 'Erro ao gerar link'); return; }
+
+    document.getElementById('modalTitulo').textContent = `Adicionar conta ML — ${nome}`;
+    document.getElementById('modalLoja').textContent = nome;
+    document.getElementById('modalLink').textContent = data.link;
+
+    // Barra de slots
+    const slotsUsed = data.contas_ativas || slotsUsados;
+    document.getElementById('slotsBar').innerHTML = Array.from({length:5}, (_,i) =>
+      `<div class="slot ${i < slotsUsed ? 'slot-used' : 'slot-free'}"></div>`
+    ).join('');
+    document.getElementById('slotsTexto').textContent = `${slotsUsed}/5 contas conectadas · ${data.slots_restantes} slot(s) disponivel(is)`;
+
+    document.getElementById('modalML').classList.add('open');
+    document.getElementById('copiadoMsg').style.display = 'none';
   } catch { alert('Erro ao gerar link.'); }
 }
 
+async function desativarConta(contaId, nickname, clienteId) {
+  if (!confirm(`Desativar a conta "${nickname}"?\n\nEsta conta sera desvinculada e os anuncios dela serao removidos do sistema.`)) return;
+  try {
+    const res = await fetch(`${API}/admin/contas-ml/${contaId}`, { method: 'DELETE', headers: { 'x-admin-key': ADMIN_KEY } });
+    if (res.ok) {
+      delete contasCache[clienteId];
+      await renderClientes();
+      alert(`Conta "${nickname}" desativada com sucesso.`);
+    } else { alert('Erro ao desativar conta.'); }
+  } catch { alert('Erro de conexao.'); }
+}
+
 function fecharModal() { document.getElementById('modalML').classList.remove('open'); }
+function fecharModalContas() { document.getElementById('modalContas').classList.remove('open'); }
 
 function copiarLink() {
   navigator.clipboard.writeText(document.getElementById('modalLink').textContent).then(() => {
@@ -423,7 +523,7 @@ async function salvarCliente() {
     const data = await res.json();
     if (!res.ok){errEl.textContent=data.error||'Erro ao salvar';errEl.style.display='block';return;}
     clientes.push(data);
-    okEl.textContent=`Cliente ${nome} cadastrado! Va em Clientes e clique em "Conectar ML".`;
+    okEl.textContent=`Cliente ${nome} cadastrado! Va em Clientes e clique em "+ Add Conta ML".`;
     okEl.style.display='block';
     document.getElementById('nNome').value='';
     document.getElementById('nToken').value='';
