@@ -552,7 +552,7 @@ async function darBaixa() {
       // Mostrar de qual conta foi a baixa
       const contaEl = document.getElementById('successConta');
       if (data.conta_ml) {
-        contaEl.textContent = '&#128338; Baixa na conta: ' + data.conta_ml;
+        contaEl.innerHTML = '&#128338; Baixa na conta: ' + data.conta_ml;
         contaEl.style.display = 'inline-block';
       } else { contaEl.style.display = 'none'; }
 
@@ -674,7 +674,7 @@ async function carregarHistorico() {
 
 function renderizarHistorico() {
   document.getElementById('hTotal').textContent = historico.length;
-  document.getElementById('hUltimo').textContent = historico.length ? historico[0].nome.split(' ').slice(0,2).join(' ') + '...' : '-';
+  const primeiroNome = historico[0].nome || historico[0].produto_nome || '-'; document.getElementById('hUltimo').textContent = primeiroNome.split(' ').slice(0,2).join(' ') + '...';
   const el = document.getElementById('listaHistorico');
   if (!historico.length) { el.innerHTML = '<div class="empty-state">Nenhuma baixa nos ultimos 7 dias.</div>'; return; }
   el.innerHTML = historico.slice(0,50).map(h => {
@@ -684,8 +684,8 @@ function renderizarHistorico() {
     return `<div class="hist-item">
       <div class="hist-dot"></div>
       <div style="flex:1">
-        <div class="hist-nome">${h.nome}${(h.variacao||h.variacao_nome)?' · '+(h.variacao||h.variacao_nome):''}</div>
-        <div class="hist-detail">-${h.qtd||h.quantidade} un · estoque: ${h.estoque_depois}</div>
+        <div class="hist-nome">${h.nome||h.produto_nome}${(h.variacao||h.variacao_nome)?' · '+(h.variacao||h.variacao_nome):''}</div>
+        <div class="hist-detail">-${h.qtd||h.quantidade||1} un · estoque: ${h.estoque_depois}</div>
         ${nickname?`<div class="hist-conta">&#128338; ${nickname}</div>`:''}
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
