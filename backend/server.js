@@ -606,10 +606,19 @@ app.get('/admin/clientes/:id/contas-ml', adminAuth, async (req, res) => {
   res.json(data);
 });
 
-// DESATIVAR CONTA ML (admin)
+// REMOVER CONTA ML (admin) — deleta o registro completamente
 app.delete('/admin/contas-ml/:contaId', adminAuth, async (req, res) => {
-  const { error } = await supabase.from('ml_contas').update({ ativo: false, atualizado_em: new Date().toISOString() }).eq('id', req.params.contaId);
+  // Buscar ml_user_id antes de deletar para remover anuncios vinculados
+  const { data: conta } = await supabase.from('ml_contas').select('id, cliente_id, ml_user_id').eq('id', req.params.contaId).single();
+  if (!conta) return res.status(404).json({ error: 'Conta nao encontrada' });
+
+  // Deletar anuncios dessa conta
+  await supabase.from('anuncios').delete().eq('ml_conta_id', conta.id);
+
+  // Deletar a conta
+  const { error } = await supabase.from('ml_contas').delete().eq('id', req.params.contaId);
   if (error) return res.status(500).json({ error });
+
   res.json({ ok: true });
 });
 
