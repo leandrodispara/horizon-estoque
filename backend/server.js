@@ -32,6 +32,7 @@ async function enviarEmailAdmin(assunto, html) {
 
 // ── TOKEN: renova o access_token de uma conta ML específica ──────────────────
 async function getMLTokenConta(conta) {
+  console.log('[TOKEN] Renovando token para conta:', conta.nickname, '| id:', conta.id, '| tem refresh_token:', !!conta.refresh_token);
   if (!conta.refresh_token) throw new Error('Conta sem refresh_token.');
   try {
     const res = await axios.post('https://api.mercadolibre.com/oauth/token', {
@@ -47,7 +48,7 @@ async function getMLTokenConta(conta) {
     }).eq('id', conta.id);
     return res.data.access_token;
   } catch (err) {
-    console.error('ML TOKEN ERROR conta', conta.id, err.response?.data);
+    console.error('[TOKEN ERROR] conta:', conta.nickname, '| status:', err.response?.status, '| data:', JSON.stringify(err.response?.data));
     throw new Error('Falha ao renovar token ML da conta ' + (conta.nickname || conta.id));
   }
 }
@@ -244,12 +245,13 @@ app.put('/baixa', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: `Estoque insuficiente. Disponivel: ${produto.estoque}` });
   }
 
-  // Buscar conta diretamente se JOIN retornou nulo
-  let conta = produto.ml_contas;
-  if (!conta && produto.ml_conta_id) {
-    const { data: contaDb } = await supabase.from('ml_contas').select('*').eq('id', produto.ml_conta_id).single();
-    conta = contaDb;
+  // Buscar conta SEMPRE diretamente (evita problema de RLS no JOIN)
+  if (!produto.ml_conta_id) {
+    console.error('[BAIXA] Produto sem ml_conta_id:', produto.ml_item_id);
+    return res.status(503).json({ error: 'Produto sem conta ML vinculada. Sincronize novamente.' });
   }
+  const { data: conta, error: contaErr } = await supabase.from('ml_contas').select('*').eq('id', produto.ml_conta_id).single();
+  console.log('[BAIXA] Conta buscada:', conta?.nickname, '| erro:', contaErr?.message);
   if (!conta) {
     console.error('[BAIXA] Conta ML nao encontrada, ml_conta_id:', produto.ml_conta_id);
     return res.status(503).json({ error: 'Conta ML nao encontrada. Sincronize novamente.' });
