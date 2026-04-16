@@ -244,8 +244,16 @@ app.put('/baixa', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: `Estoque insuficiente. Disponivel: ${produto.estoque}` });
   }
 
-  const conta = produto.ml_contas;
-  if (!conta) return res.status(503).json({ error: 'Conta ML nao encontrada para este produto.' });
+  // Buscar conta diretamente se JOIN retornou nulo
+  let conta = produto.ml_contas;
+  if (!conta && produto.ml_conta_id) {
+    const { data: contaDb } = await supabase.from('ml_contas').select('*').eq('id', produto.ml_conta_id).single();
+    conta = contaDb;
+  }
+  if (!conta) {
+    console.error('[BAIXA] Conta ML nao encontrada, ml_conta_id:', produto.ml_conta_id);
+    return res.status(503).json({ error: 'Conta ML nao encontrada. Sincronize novamente.' });
+  }
 
   const novoEstoque = produto.estoque - quantidade;
   const nickname = conta.nickname || 'Conta ML';
@@ -585,7 +593,7 @@ app.get('/admin/link-ml/:clienteId', adminAuth, async (req, res) => {
   }
 
   const state = Buffer.from(JSON.stringify({ clienteId: cliente.id, token: cliente.token })).toString('base64');
-  const link  = `https://auth.mercadolivre.com.br/authorization?response_type=code&client_id=${ML_CLIENT_ID}&redirect_uri=${encodeURIComponent(ML_REDIRECT_URI)}&state=${state}`;
+  const link  = `https://auth.mercadolivre.com.br/authorization?response_type=code&client_id=${ML_CLIENT_ID}&redirect_uri=${encodeURIComponent(ML_REDIRECT_URI)}&state=${state}&prompt=login`;
 
   res.json({
     link,
