@@ -70,6 +70,7 @@
     .badge-ok{background:#EAF3DE;color:#3B6D11}
     .badge-low{background:var(--warn-bg);color:var(--warn)}
     .badge-zero{background:var(--danger-bg);color:var(--danger)}
+    .conta-tag{display:inline-flex;align-items:center;gap:4px;background:var(--info-bg);color:var(--info);font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;margin-top:5px}
     .qty-section{display:flex;align-items:center;gap:10px;margin-top:13px;padding-top:13px;border-top:1px solid var(--border)}
     .qty-label{font-size:12px;color:var(--muted)}
     .qty-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--rose)}
@@ -83,6 +84,7 @@
     .success-icon{font-size:28px;margin-bottom:6px}
     .success-title{font-family:'Playfair Display',serif;font-size:15px;color:var(--success);margin-bottom:3px}
     .success-msg{font-size:12px;color:#4A7C4E}
+    .success-conta{font-size:11px;color:var(--info);background:var(--info-bg);border-radius:8px;padding:4px 10px;display:inline-block;margin-top:5px}
     .success-actions{display:flex;gap:8px;margin-top:12px}
     .btn-next{flex:1;padding:9px;background:var(--rose);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer}
     .btn-ghost{padding:9px 13px;background:white;color:var(--dark);border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer}
@@ -94,6 +96,7 @@
     .prod-info{flex:1;min-width:0}
     .prod-nome{font-size:12px;font-weight:500;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .prod-ean{font-size:10px;color:var(--muted);font-family:monospace}
+    .prod-conta{font-size:10px;color:var(--info);margin-top:2px}
     .prod-stock{text-align:right;flex-shrink:0}
     .stock-num{font-size:14px;font-weight:500}
     .stock-bar{width:50px;height:4px;background:var(--rose-light);border-radius:2px;margin-top:3px}
@@ -103,6 +106,7 @@
     .hist-dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0;margin-top:3px}
     .hist-nome{font-size:12px;font-weight:500;color:var(--dark)}
     .hist-detail{font-size:11px;color:var(--muted);margin-top:1px}
+    .hist-conta{font-size:10px;color:var(--info);margin-top:2px}
     .hist-hora{font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0}
     .btn-estorno{padding:3px 9px;border:1px solid #FECACA;border-radius:6px;background:var(--danger-bg);font-size:10px;cursor:pointer;color:var(--danger);font-family:'DM Sans',sans-serif;white-space:nowrap}
     .pend-item{display:flex;align-items:flex-start;gap:9px;padding:10px 0;border-bottom:1px solid var(--rose-pale)}
@@ -119,6 +123,21 @@
     .empty-state{text-align:center;padding:24px;color:var(--muted);font-size:12px}
     .sec{display:none}.sec.active{display:block}
     .btn-logout{padding:5px 10px;background:transparent;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--muted);cursor:pointer}
+    /* Contas ML */
+    .contas-section{margin-bottom:13px}
+    .conta-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:13px}
+    .conta-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .conta-titulo{font-family:'Playfair Display',serif;font-size:13px;color:var(--dark)}
+    .conta-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--rose-pale)}
+    .conta-item:last-child{border-bottom:none}
+    .conta-avatar{width:32px;height:32px;border-radius:8px;background:var(--info-bg);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+    .conta-nickname{font-size:12px;font-weight:500;color:var(--dark)}
+    .conta-info{font-size:11px;color:var(--muted);margin-top:1px}
+    .conta-badge-ok{display:inline-flex;align-items:center;gap:3px;background:#EAF3DE;color:#3B6D11;font-size:10px;padding:2px 8px;border-radius:20px}
+    .slots-dots{display:flex;gap:3px;margin-top:4px}
+    .slot-dot{width:8px;height:8px;border-radius:50%}
+    .slot-on{background:var(--rose)}
+    .slot-off{background:var(--rose-light)}
     @media(max-width:400px){.metrics{grid-template-columns:1fr 1fr}}
   </style>
 </head>
@@ -140,11 +159,11 @@
 <div id="appScreen">
   <div class="topbar">
     <div class="topbar-brand">
-      <span class="topbar-icon" id="topbarIcon">&#127968;</span>
+      <span class="topbar-icon">&#127968;</span>
       <span class="topbar-name" id="topbarNome">Carregando...</span>
     </div>
     <div style="display:flex;align-items:center;gap:10px">
-      <div class="topbar-status"><div class="dot"></div>ML conectado</div>
+      <div class="topbar-status" id="topbarStatus"><div class="dot"></div><span id="statusTxt">ML conectado</span></div>
       <button class="btn-logout" onclick="fazerLogout()">Sair</button>
     </div>
   </div>
@@ -152,6 +171,7 @@
   <div class="tabs-bar">
     <button class="tab-btn active" onclick="irPara('bipar',this)">Bipar</button>
     <button class="tab-btn" onclick="irPara('estoque',this)">Estoque</button>
+    <button class="tab-btn" onclick="irPara('contas',this)">Contas ML</button>
     <button class="tab-btn" onclick="irPara('pendentes',this)" id="tabPendentes">Pendentes</button>
     <button class="tab-btn" onclick="irPara('eans',this)" id="tabEans">EANs</button>
     <button class="tab-btn" onclick="irPara('historico',this)">Historico</button>
@@ -200,6 +220,9 @@
             <span style="font-size:12px;color:var(--muted)">Estoque: <strong id="pcEst"></strong></span>
             <span class="estoque-badge" id="pcBadge"></span>
           </div>
+          <div id="pcContaWrap" style="display:none">
+            <span class="conta-tag">&#128338; <span id="pcConta"></span></span>
+          </div>
           <div class="alert-warn" id="alertWarn">Estoque baixo — considere reabastecer este item.</div>
           <div class="alert-minimo" id="alertMinimo">Atencao: estoque abaixo do minimo configurado!</div>
           <div class="qty-section">
@@ -218,9 +241,10 @@
           <div class="success-icon">&#10003;</div>
           <div class="success-title">Estoque atualizado!</div>
           <div class="success-msg" id="successMsg"></div>
+          <div class="success-conta" id="successConta" style="display:none"></div>
           <div class="success-actions">
             <button class="btn-next" onclick="novaBipagem()">Bipar proximo</button>
-            <button class="btn-ghost" onclick="irPara('historico',document.querySelectorAll('.tab-btn')[4])">Historico</button>
+            <button class="btn-ghost" onclick="irPara('historico',document.querySelectorAll('.tab-btn')[5])">Historico</button>
           </div>
         </div>
       </div>
@@ -231,6 +255,24 @@
         <div class="card-header"><span class="card-title">Meus anuncios</span><button class="btn-sync" onclick="sincronizar()">&#8635; Sync ML</button></div>
         <input type="text" class="search-bar" placeholder="Buscar produto ou EAN..." oninput="filtrarProdutos(this.value)">
         <div id="listaProdutos"></div>
+      </div>
+    </div>
+
+    <!-- ABA CONTAS ML -->
+    <div class="sec" id="sec-contas">
+      <div class="conta-card">
+        <div class="conta-header">
+          <span class="conta-titulo">Contas Mercado Livre vinculadas</span>
+          <button class="btn-sync" onclick="carregarContas()">&#8635; Atualizar</button>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:13px">Estas sao as contas do Mercado Livre conectadas ao seu sistema. A baixa e dada automaticamente na conta com menor estoque do produto bipado.</p>
+        <div id="listaContas"><div class="empty-state">Carregando...</div></div>
+        <div style="margin-top:13px;padding-top:13px;border-top:1px solid var(--rose-pale)">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Slots utilizados</div>
+          <div class="slots-dots" id="slotsDots"></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:5px" id="slotsInfo">carregando...</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6">Para adicionar ou remover uma conta, entre em contato com a <strong style="color:var(--rose-dark)">Horizon Consultoria</strong>.</div>
+        </div>
       </div>
     </div>
 
@@ -273,6 +315,7 @@ let ESTOQUE_MINIMO = 3;
 let anuncios = [];
 let historico = [];
 let pendentes = [];
+let contasML = [];
 let qty = 1;
 let curProd = null;
 let baixasHoje = 0;
@@ -287,8 +330,7 @@ async function fazerLogin() {
   btn.disabled = true; btn.textContent = 'Verificando...'; err.style.display = 'none';
   try {
     const res = await fetch(`${API}/auth`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token: TOKEN })
     });
     const data = await res.json();
@@ -312,7 +354,7 @@ function showErr(msg) {
 function fazerLogout() {
   localStorage.removeItem('hz_token');
   TOKEN = ''; CLIENTE_ID = ''; NOME_LOJA = '';
-  anuncios = []; historico = []; pendentes = [];
+  anuncios = []; historico = []; pendentes = []; contasML = [];
   baixasHoje = 0; curProd = null; qty = 1;
   fecharCamera();
   document.getElementById('appScreen').style.display = 'none';
@@ -328,9 +370,7 @@ async function entrarNoApp() {
   document.getElementById('appScreen').style.display = 'block';
   document.title = NOME_LOJA + ' · Estoque';
   verificarUltimaSync();
-  await carregarAnuncios();
-  await carregarPendentes();
-  await carregarEans();
+  await Promise.all([carregarAnuncios(), carregarPendentes(), carregarEans(), carregarContas()]);
   document.getElementById('hData').textContent = new Date().toLocaleDateString('pt-BR');
 }
 
@@ -358,6 +398,52 @@ async function carregarAnuncios() {
   } catch {}
 }
 
+async function carregarContas() {
+  try {
+    const res = await fetch(`${API}/contas-ml`, { headers: { 'x-access-token': TOKEN } });
+    if (!res.ok) return;
+    contasML = await res.json();
+    renderizarContas();
+    // Atualizar status na topbar
+    const statusEl = document.getElementById('statusTxt');
+    if (contasML.length > 0) {
+      statusEl.textContent = `${contasML.length} conta(s) ML`;
+    } else {
+      statusEl.textContent = 'Sem conta ML';
+      document.getElementById('topbarStatus').style.color = 'var(--warn)';
+      document.querySelector('.dot').style.background = 'var(--warn)';
+    }
+  } catch {}
+}
+
+function renderizarContas() {
+  const el = document.getElementById('listaContas');
+  const slots = contasML.length;
+
+  // Atualizar dots de slots
+  document.getElementById('slotsDots').innerHTML = Array.from({length:5}, (_,i) =>
+    `<div class="slot-dot ${i < slots ? 'slot-on' : 'slot-off'}"></div>`
+  ).join('');
+  document.getElementById('slotsInfo').textContent = `${slots} de 5 slots utilizados`;
+
+  if (!contasML.length) {
+    el.innerHTML = '<div class="empty-state">Nenhuma conta conectada.<br>Entre em contato com a Horizon Consultoria.</div>';
+    return;
+  }
+
+  el.innerHTML = contasML.map(c => `
+    <div class="conta-item">
+      <div class="conta-avatar">&#127978;</div>
+      <div style="flex:1">
+        <div class="conta-nickname">${c.nickname}</div>
+        <div class="conta-info">ID: ${c.ml_user_id}</div>
+        <div class="conta-info">Conectada em ${new Date(c.criado_em).toLocaleDateString('pt-BR')}</div>
+      </div>
+      <span class="conta-badge-ok">&#10003; Ativa</span>
+    </div>
+  `).join('');
+}
+
 function atualizarMetricas() {
   document.getElementById('mAnuncios').textContent = anuncios.length;
   document.getElementById('mBaixas').textContent = baixasHoje;
@@ -372,8 +458,8 @@ async function sincronizar() {
     const data = await res.json();
     if (res.ok) {
       await carregarAnuncios();
-      btn.textContent = data.total + ' itens';
-      setTimeout(() => { btn.textContent = '↻ Atualizar'; btn.disabled = false; }, 2500);
+      btn.textContent = data.total + ' itens (' + (data.contas||1) + ' conta(s))';
+      setTimeout(() => { btn.textContent = '↻ Atualizar'; btn.disabled = false; }, 3000);
       verificarUltimaSync();
     } else { btn.textContent = '↻ Atualizar'; btn.disabled = false; }
   } catch { btn.textContent = '↻ Atualizar'; btn.disabled = false; }
@@ -383,27 +469,44 @@ async function buscarEAN() {
   const ean = document.getElementById('eanInput').value.trim();
   if (!ean) return;
   hide('produtoCard'); hide('alertNotFound'); hide('successBox'); hide('alertPendente');
-  qty = 1;
-  curProd = anuncios.find(a => a.ean === ean);
-  if (!curProd) {
+  qty = 1; curProd = null;
+
+  // Busca local primeiro (pega o de menor estoque)
+  const locais = anuncios.filter(a => a.ean === ean).sort((a,b) => a.estoque - b.estoque);
+  if (locais.length > 0) {
+    curProd = locais[0];
+  } else {
     try {
       const res = await fetch(`${API}/produto/${ean}`, { headers: { 'x-access-token': TOKEN } });
       if (res.ok) curProd = await res.json();
     } catch {}
   }
+
   if (!curProd) { show('alertNotFound'); return; }
+
   document.getElementById('pcNome').textContent = curProd.nome;
   document.getElementById('pcEst').textContent = curProd.estoque;
   document.getElementById('qtyNum').textContent = 1;
+
   const varWrap = document.getElementById('pcVariacaoWrap');
   if (curProd.variacao_nome) {
     document.getElementById('pcVariacao').textContent = curProd.variacao_nome;
     varWrap.style.display = 'block';
   } else { varWrap.style.display = 'none'; }
+
+  // Mostrar de qual conta é o produto
+  const nickname = curProd.ml_contas?.nickname || curProd.ml_nickname;
+  const contaWrap = document.getElementById('pcContaWrap');
+  if (nickname) {
+    document.getElementById('pcConta').textContent = nickname;
+    contaWrap.style.display = 'block';
+  } else { contaWrap.style.display = 'none'; }
+
   const badge = document.getElementById('pcBadge');
   if (curProd.estoque === 0) { badge.className = 'estoque-badge badge-zero'; badge.textContent = 'Zerado'; }
   else if (curProd.estoque <= ESTOQUE_MINIMO) { badge.className = 'estoque-badge badge-low'; badge.textContent = 'Estoque baixo'; }
   else { badge.className = 'estoque-badge badge-ok'; badge.textContent = 'Normal'; }
+
   document.getElementById('alertWarn').style.display = (curProd.estoque > 0 && curProd.estoque / 20 < 0.2) ? 'block' : 'none';
   document.getElementById('alertMinimo').style.display = (curProd.estoque <= ESTOQUE_MINIMO && curProd.estoque > 0) ? 'block' : 'none';
   show('produtoCard');
@@ -435,14 +538,24 @@ async function darBaixa() {
     } else if (!res.ok) {
       alert(data.error);
     } else {
-      const idx = anuncios.findIndex(a => a.ean === curProd.ean);
+      const idx = anuncios.findIndex(a => a.ean === curProd.ean && (a.ml_conta_id === curProd.ml_conta_id || !a.ml_conta_id));
       if (idx >= 0) anuncios[idx].estoque = data.estoque_novo;
       baixasHoje++;
+
       const now = new Date();
       const hora = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-      historico.unshift({ id: data.baixa_id, nome: curProd.nome, variacao: curProd.variacao_nome, qtd: qty, estoque_depois: data.estoque_novo, hora, estoque_antes: curProd.estoque, criado_em: new Date().toISOString() });
+      historico.unshift({ id: data.baixa_id, nome: curProd.nome, variacao: curProd.variacao_nome, qtd: qty, estoque_depois: data.estoque_novo, hora, estoque_antes: curProd.estoque, ml_nickname: data.conta_ml, criado_em: new Date().toISOString() });
+
       document.getElementById('successMsg').textContent = curProd.nome + (curProd.variacao_nome ? ' · ' + curProd.variacao_nome : '') + ' · -' + qty + ' un · estoque: ' + data.estoque_novo;
-      if (data.alerta_estoque_baixo) document.getElementById('successMsg').textContent += ' (ESTOQUE BAIXO!)';
+      if (data.alerta_estoque_baixo) document.getElementById('successMsg').textContent += ' ⚠ ESTOQUE BAIXO';
+
+      // Mostrar de qual conta foi a baixa
+      const contaEl = document.getElementById('successConta');
+      if (data.conta_ml) {
+        contaEl.textContent = '&#128338; Baixa na conta: ' + data.conta_ml;
+        contaEl.style.display = 'inline-block';
+      } else { contaEl.style.display = 'none'; }
+
       hide('produtoCard'); show('successBox'); atualizarMetricas();
     }
   } catch { alert('Erro de conexao. Tente novamente.'); }
@@ -461,7 +574,18 @@ function renderizarEstoque(lista) {
   el.innerHTML = lista.map(p => {
     const pct = Math.min(100, p.estoque * 5);
     const cor = p.estoque === 0 ? '#C8566A' : p.estoque <= ESTOQUE_MINIMO ? '#EF9F27' : '#639922';
-    return '<div class="prod-item"><div class="prod-info"><div class="prod-nome">' + p.nome + (p.variacao_nome ? ' · ' + p.variacao_nome : '') + '</div><div class="prod-ean">' + (p.ean || 'Sem EAN') + '</div></div><div class="prod-stock"><div class="stock-num" style="color:' + (p.estoque === 0 ? 'var(--danger)' : 'var(--dark)') + '">' + p.estoque + '</div><div class="stock-bar"><div class="stock-fill" style="width:' + pct + '%;background:' + cor + '"></div></div></div></div>';
+    const nickname = p.ml_contas?.nickname || '';
+    return `<div class="prod-item">
+      <div class="prod-info">
+        <div class="prod-nome">${p.nome}${p.variacao_nome ? ' · ' + p.variacao_nome : ''}</div>
+        <div class="prod-ean">${p.ean || 'Sem EAN'}</div>
+        ${nickname ? `<div class="prod-conta">&#128338; ${nickname}</div>` : ''}
+      </div>
+      <div class="prod-stock">
+        <div class="stock-num" style="color:${p.estoque === 0 ? 'var(--danger)' : 'var(--dark)'}">${p.estoque}</div>
+        <div class="stock-bar"><div class="stock-fill" style="width:${pct}%;background:${cor}"></div></div>
+      </div>
+    </div>`;
   }).join('');
 }
 
@@ -486,7 +610,15 @@ function renderizarPendentes() {
   el.innerHTML = pendentes.map(p => {
     const d = new Date(p.criado_em);
     const hora = d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    return '<div class="pend-item"><div class="pend-dot"></div><div style="flex:1"><div class="pend-nome">' + (p.produto_nome || 'Produto desconhecido') + (p.variacao_nome ? ' · ' + p.variacao_nome : '') + '</div><div class="pend-detail">EAN: ' + (p.ean || '-') + ' · ' + p.quantidade + ' un · ' + hora + '</div><div class="pend-detail" style="color:var(--warn)">' + p.motivo_falha + ' · ' + (p.tentativas || 1) + ' tentativa(s)</div></div><div style="display:flex;flex-direction:column;gap:4px"><button class="btn-retry" onclick="reprocessarPendente(\'' + p.id + '\')">Tentar</button><button class="btn-del" onclick="deletarPendente(\'' + p.id + '\')">Remover</button></div></div>';
+    return `<div class="pend-item"><div class="pend-dot"></div><div style="flex:1">
+      <div class="pend-nome">${p.produto_nome||'Produto desconhecido'}${p.variacao_nome?' · '+p.variacao_nome:''}</div>
+      <div class="pend-detail">EAN: ${p.ean||'-'} · ${p.quantidade} un · ${hora}</div>
+      ${p.ml_nickname?`<div class="pend-detail" style="color:var(--info)">Conta: ${p.ml_nickname}</div>`:''}
+      <div class="pend-detail" style="color:var(--warn)">${p.motivo_falha} · ${p.tentativas||1} tentativa(s)</div>
+    </div><div style="display:flex;flex-direction:column;gap:4px">
+      <button class="btn-retry" onclick="reprocessarPendente('${p.id}')">Tentar</button>
+      <button class="btn-del" onclick="deletarPendente('${p.id}')">Remover</button>
+    </div></div>`;
   }).join('');
 }
 
@@ -518,7 +650,7 @@ async function carregarEans() {
     if (!eans.length) { el.innerHTML = '<div class="empty-state">Nenhum EAN desconhecido. Otimo!</div>'; return; }
     el.innerHTML = eans.map(e => {
       const d = new Date(e.atualizado_em);
-      return '<div class="ean-item"><div><div class="ean-code">' + e.ean + '</div><div class="ean-count">Bipado ' + e.quantidade_tentativas + 'x · ' + d.toLocaleDateString('pt-BR') + '</div></div><button class="btn-del" onclick="deletarEan(\'' + e.id + '\')">Remover</button></div>';
+      return `<div class="ean-item"><div><div class="ean-code">${e.ean}</div><div class="ean-count">Bipado ${e.quantidade_tentativas}x · ${d.toLocaleDateString('pt-BR')}</div></div><button class="btn-del" onclick="deletarEan('${e.id}')">Remover</button></div>`;
     }).join('');
   } catch {}
 }
@@ -548,7 +680,19 @@ function renderizarHistorico() {
   el.innerHTML = historico.slice(0,50).map(h => {
     const hora = h.hora || new Date(h.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     const podeEstornar = h.id && h.criado_em && (Date.now() - new Date(h.criado_em).getTime()) < 60 * 60 * 1000;
-    return '<div class="hist-item"><div class="hist-dot"></div><div style="flex:1"><div class="hist-nome">' + h.nome + (h.variacao || h.variacao_nome ? ' · ' + (h.variacao || h.variacao_nome) : '') + '</div><div class="hist-detail">-' + (h.qtd || h.quantidade) + ' un · estoque: ' + h.estoque_depois + '</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><span class="hist-hora">' + hora + '</span>' + (podeEstornar ? '<button class="btn-estorno" onclick="estornar(\'' + h.id + '\')">Estornar</button>' : '') + '</div></div>';
+    const nickname = h.ml_nickname || h.ml_conta?.nickname || '';
+    return `<div class="hist-item">
+      <div class="hist-dot"></div>
+      <div style="flex:1">
+        <div class="hist-nome">${h.nome}${(h.variacao||h.variacao_nome)?' · '+(h.variacao||h.variacao_nome):''}</div>
+        <div class="hist-detail">-${h.qtd||h.quantidade} un · estoque: ${h.estoque_depois}</div>
+        ${nickname?`<div class="hist-conta">&#128338; ${nickname}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+        <span class="hist-hora">${hora}</span>
+        ${podeEstornar?`<button class="btn-estorno" onclick="estornar('${h.id}')">Estornar</button>`:''}
+      </div>
+    </div>`;
   }).join('');
 }
 
@@ -570,6 +714,7 @@ function irPara(id, btn) {
   if (id === 'historico') carregarHistorico();
   if (id === 'pendentes') carregarPendentes();
   if (id === 'eans') carregarEans();
+  if (id === 'contas') carregarContas();
 }
 
 function show(id) { document.getElementById(id).style.display = 'block'; }
